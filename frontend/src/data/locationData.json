@@ -1,0 +1,28 @@
+{
+  "North": [
+    { "state": "Jammu and Kashmir", "cities": ["Srinagar", "Gulmarg"] },
+    { "state": "Ladakh", "cities": ["Leh"] },
+    { "state": "Himachal Pradesh", "cities": ["Manali"] },
+    { "state": "Uttarakhand", "cities": ["Rishikesh", "Badrinath/Kedarnath"] },
+    { "state": "Rajasthan", "cities": ["Jaipur"] },
+    { "state": "Punjab", "cities": ["Amritsar"] },
+    { "state": "Uttar Pradesh", "cities": ["Ayodhya", "Varanasi"] }
+  ],
+  "South": [
+    { "state": "Kerala", "cities": ["Munnar"] },
+    { "state": "Karnataka", "cities": ["Hampi"] },
+    { "state": "Goa", "cities": ["Calangute"] },
+    { "state": "Lakshadweep", "cities": ["Agatti"] }
+  ],
+  "East": [
+    { "state": "West Bengal", "cities": ["Darjeeling"] },
+    { "state": "Odisha", "cities": ["Puri"] },
+    { "state": "Bihar", "cities": ["Bodh Gaya"] }
+  ],
+  "WestCentral": [
+    { "state": "Maharashtra", "cities": ["Mumbai"] }
+  ],
+  "NorthEast": [
+    { "state": "Meghalaya", "cities": ["Shillong", "Cherrapunji"] }
+  ]
+}
