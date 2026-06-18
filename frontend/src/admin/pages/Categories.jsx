@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaTimes, FaFolder, FaImage, FaBook, FaSuitcase } from "react-icons/fa";
-import { categoryService } from "../../services/api";
+
+const CATEGORIES_STORAGE_KEY = "prime-holiday-categories";
 
 const iconOptions = [
   { value: "fa-folder", label: "Folder", icon: FaFolder },
@@ -9,49 +10,42 @@ const iconOptions = [
   { value: "fa-suitcase", label: "Tour", icon: FaSuitcase },
 ];
 
+const defaultCategories = [
+  { id: "cat-1", name: "Adventure", icon: "fa-suitcase", createdAt: new Date().toISOString() },
+  { id: "cat-2", name: "Beach", icon: "fa-image", createdAt: new Date().toISOString() },
+  { id: "cat-3", name: "Cultural", icon: "fa-book", createdAt: new Date().toISOString() },
+];
+
 const Categories = () => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const stored = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultCategories;
+    } catch { return defaultCategories; }
+  });
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: "", icon: "fa-folder" });
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const res = await categoryService.getAll({ limit: 100 });
-      const data = res.data.categories || res.data || [];
-      setCategories(data.map(c => ({ ...c, id: c._id || c.id })));
-    } catch (err) {
-      console.error("Failed to fetch categories:", err);
-    }
+  const saveCategories = (updated) => {
+    setCategories(updated);
+    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updated));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (editingId) {
-        await categoryService.update(editingId, formData);
-      } else {
-        await categoryService.create(formData);
-      }
-      fetchCategories();
-      closeModal();
-    } catch (err) {
-      console.error("Failed to save category:", err);
+    const category = { ...formData, id: editingId || `cat-${Date.now()}`, createdAt: new Date().toISOString() };
+    if (editingId) {
+      saveCategories(categories.map(c => c.id === editingId ? category : c));
+    } else {
+      saveCategories([category, ...categories]);
     }
+    closeModal();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (window.confirm("Delete this category?")) {
-      try {
-        await categoryService.delete(id);
-        fetchCategories();
-      } catch (err) {
-        console.error("Failed to delete category:", err);
-      }
+      saveCategories(categories.filter(c => c.id !== id));
     }
   };
 

@@ -1,45 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaCheck, FaTimes, FaStar, FaTrash, FaSearch, FaFilter } from "react-icons/fa";
-import { reviewService } from "../../services/api";
 
-const API_URL = "http://localhost:5000";
+const REVIEWS_STORAGE_KEY = "prime-holiday-reviews";
+
+const defaultReviews = [
+  { id: "r-1", userName: "Guest", userId: "user-1", tourName: "Sample Tour", rating: 5, comment: "Great tour!", status: "approved" },
+];
 
 const Reviews = () => {
-  const [reviews, setReviews] = useState([]);
+  const [reviews, setReviews] = useState(() => {
+    try {
+      const stored = localStorage.getItem(REVIEWS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultReviews;
+    } catch { return defaultReviews; }
+  });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const fetchReviews = async () => {
-    try {
-      const res = await reviewService.getAll({ limit: 100 });
-      const data = res.data.reviews || res.data || [];
-      setReviews(data.map(r => ({ ...r, id: r._id || r.id })));
-    } catch (err) {
-      console.error("Failed to fetch reviews:", err);
-    }
+  const saveReviews = (updated) => {
+    setReviews(updated);
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(updated));
   };
 
-  const updateStatus = async (id, status) => {
-    try {
-      await reviewService.update(id, { status });
-      setReviews(reviews.map(r => (r._id === id || r.id === id) ? { ...r, status } : r));
-    } catch (err) {
-      console.error("Failed to update review:", err);
-    }
+  const updateStatus = (id, status) => {
+    saveReviews(reviews.map(r => r.id === id ? { ...r, status } : r));
   };
 
-  const deleteReview = async (id) => {
+  const deleteReview = (id) => {
     if (window.confirm("Delete this review?")) {
-      try {
-        await reviewService.delete(id);
-        setReviews(reviews.filter(r => (r._id || r.id) !== id));
-      } catch (err) {
-        console.error("Failed to delete review:", err);
-      }
+      saveReviews(reviews.filter(r => r.id !== id));
     }
   };
 

@@ -1,39 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaHistory, FaFilter, FaSearch, FaUser, FaEdit, FaTrash, FaPlus, FaSignOutAlt } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
+const ACTIVITY_STORAGE_KEY = "prime-holiday-activities";
+
+const defaultLogs = [
+  { id: "log-1", action: "Created", details: "New tour 'Goa Beach Trip' added", adminId: "admin-1", createdAt: new Date().toISOString() },
+  { id: "log-2", action: "Updated", details: "Booking BK-1024 status changed to Confirmed", adminId: "admin-1", createdAt: new Date(Date.now() - 3600000).toISOString() },
+  { id: "log-3", action: "Deleted", details: "Blog post 'Travel Tips' removed", adminId: "admin-1", createdAt: new Date(Date.now() - 7200000).toISOString() },
+  { id: "log-4", action: "Login", details: "Admin logged in", adminId: "admin-1", createdAt: new Date(Date.now() - 86400000).toISOString() },
+  { id: "log-5", action: "Created", details: "New category 'Adventure' added", adminId: "admin-1", createdAt: new Date(Date.now() - 172800000).toISOString() },
+];
 
 const ActivityLogs = () => {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState(() => {
+    try {
+      const stored = localStorage.getItem(ACTIVITY_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultLogs;
+    } catch { return defaultLogs; }
+  });
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
-
-  useEffect(() => {
-    fetchLogs();
-  }, []);
-
-  const fetchLogs = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/activity-logs`);
-      const data = await res.json();
-      setLogs(data.length > 0 ? data : [
-        { id: "log-1", action: "Created", details: "New tour 'Goa Beach Trip' added", adminId: "admin-1", createdAt: new Date().toISOString() },
-        { id: "log-2", action: "Updated", details: "Booking BK-1024 status changed to Confirmed", adminId: "admin-1", createdAt: new Date(Date.now() - 3600000).toISOString() },
-        { id: "log-3", action: "Deleted", details: "Blog post 'Travel Tips' removed", adminId: "admin-1", createdAt: new Date(Date.now() - 7200000).toISOString() },
-        { id: "log-4", action: "Login", details: "Admin logged in from Chrome on Windows", adminId: "admin-1", createdAt: new Date(Date.now() - 86400000).toISOString() },
-        { id: "log-5", action: "Created", details: "New category 'Adventure' added", adminId: "admin-1", createdAt: new Date(Date.now() - 172800000).toISOString() },
-      ]);
-    } catch (err) {
-      console.error("Failed to fetch logs:", err);
-      setLogs([
-        { id: "log-1", action: "Created", details: "New tour 'Goa Beach Trip' added", adminId: "admin-1", createdAt: new Date().toISOString() },
-        { id: "log-2", action: "Updated", details: "Booking BK-1024 status changed to Confirmed", adminId: "admin-1", createdAt: new Date(Date.now() - 3600000).toISOString() },
-        { id: "log-3", action: "Deleted", details: "Blog post 'Travel Tips' removed", adminId: "admin-1", createdAt: new Date(Date.now() - 7200000).toISOString() },
-        { id: "log-4", action: "Login", details: "Admin logged in from Chrome on Windows", adminId: "admin-1", createdAt: new Date(Date.now() - 86400000).toISOString() },
-        { id: "log-5", action: "Created", details: "New category 'Adventure' added", adminId: "admin-1", createdAt: new Date(Date.now() - 172800000).toISOString() },
-      ]);
-    }
-  };
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = !search || 

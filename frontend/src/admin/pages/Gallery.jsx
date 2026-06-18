@@ -1,40 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { FaImages, FaUpload, FaTrash, FaSearch, FaCheck, FaTimes, FaTag, FaPlus, FaEdit, FaCloudUploadAlt } from "react-icons/fa";
-import { galleryService } from "../../services/api";
+import { useGallery } from "../../context/GalleryContext";
 
 const getImageSrc = (image) => {
   if (!image) return "https://placehold.co/400x400?text=No+Image";
   if (image.startsWith("http") || image.startsWith("data:")) return image;
-  return `http://localhost:5000${image}`;
+  return "https://placehold.co/400x400?text=No+Image";
 };
 
 const Gallery = () => {
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { images: contextImages, addImage, deleteImage: deleteContextImage } = useGallery();
+  const [images, setImages] = useState(contextImages || []);
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadQueue, setUploadQueue] = useState([]);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
-  const fetchImages = async () => {
-    setLoading(true);
-    try {
-      const res = await galleryService.getAll({ limit: 100 });
-      const data = res.data.gallery || res.data || [];
-      setImages(data.map(img => ({ ...img, id: img._id || img.id, tags: img.tags || [] })));
-    } catch (err) {
-      console.error("Gallery fetch error:", err);
-      setImages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -76,48 +58,35 @@ const Gallery = () => {
 
   const uploadQueueFiles = async () => {
     for (let i = 0; i < uploadQueue.length; i++) {
-      const { file } = uploadQueue[i];
-      const data = new FormData();
-      data.append("title", "Gallery Upload");
-      data.append("location", "Unknown");
-      data.append("category", "General");
-      data.append("image", file);
-
-      try {
-        const res = await galleryService.create(data);
-        if (res.status === 200 || res.status === 201) {
-          setImages(prev => [res.data, ...prev]);
-        }
-      } catch (err) {
-        console.error("Upload failed", err);
-      }
+      const { file, preview } = uploadQueue[i];
+      const newImage = {
+        id: `gallery-${Date.now()}-${i}`,
+        title: "Gallery Upload",
+        location: "Unknown",
+        category: "General",
+        image: preview,
+        tags: [],
+        heightClass: "h-[300px]",
+      };
+      addImage(newImage);
+      setImages(prev => [newImage, ...prev]);
     }
     setUploadQueue([]);
   };
 
-  const deleteImage = async (id) => {
+  const deleteImage = (id) => {
     if (window.confirm("Delete this image?")) {
-      try {
-        await galleryService.delete(id);
-        setImages(images.filter(img => img.id !== id));
-        setSelectedImages(selectedImages.filter(imgId => imgId !== id));
-      } catch (err) {
-        console.error("Failed to delete image:", err);
-      }
+      deleteContextImage(id);
+      setImages(images.filter(img => img.id !== id));
+      setSelectedImages(selectedImages.filter(imgId => imgId !== id));
     }
   };
 
-  const deleteSelected = async () => {
+  const deleteSelected = () => {
     if (window.confirm(`Delete ${selectedImages.length} selected images?`)) {
-      try {
-        for (const id of selectedImages) {
-          await galleryService.delete(id);
-        }
-        setImages(images.filter(img => !selectedImages.includes(img.id)));
-        setSelectedImages([]);
-      } catch (err) {
-        console.error("Failed to delete images:", err);
-      }
+      selectedImages.forEach(id => deleteContextImage(id));
+      setImages(images.filter(img => !selectedImages.includes(img.id)));
+      setSelectedImages([]);
     }
   };
 
@@ -135,10 +104,10 @@ const Gallery = () => {
     }
   };
 
-  const addTag = async (imgId) => {
+  const addTag = (imgId) => {
     const image = images.find(img => img.id === imgId);
     const tag = prompt("Enter tag name:");
-    if (tag) {
+    if (tag && image) {
       const newTags = [...(image.tags || []), tag];
       setImages(images.map(img => img.id === imgId ? { ...img, tags: newTags } : img));
     }

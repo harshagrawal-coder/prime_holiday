@@ -3,12 +3,10 @@ import { FaArrowRight, FaClock, FaMapMarkerAlt, FaStar } from "react-icons/fa";
 import LazyImage from "../ui/LazyImage";
 import { getStartingPrice } from "./tourUtils";
 
-const API_URL = "http://localhost:5000";
-
 const getImageSrc = (image) => {
   if (!image) return "https://placehold.co/600x400?text=No+Image";
   if (image.startsWith("http") || image.startsWith("data:")) return image;
-  return `${API_URL}${image}`;
+  return "https://placehold.co/600x400?text=No+Image";
 };
 
 const TourCard = ({ tour, isHome = false }) => {

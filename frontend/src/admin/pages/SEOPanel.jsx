@@ -51,36 +51,10 @@ const SEOPanel = () => {
   const handleSave = async () => {
     setSaving(true);
     setError("");
-    
-    try {
-      localStorage.setItem("prime-holiday-seo", JSON.stringify(seoData));
-      
-      const token = localStorage.getItem("adminToken");
-      const res = await fetch("http://localhost:5000/api/seo", {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(seoData),
-      });
-      
-      if (res.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-      } else {
-        setError("Saved locally (backend not connected)");
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-      }
-    } catch (err) {
-      localStorage.setItem("prime-holiday-seo", JSON.stringify(seoData));
-      setError("Saved locally");
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } finally {
-      setSaving(false);
-    }
+    localStorage.setItem("prime-holiday-seo", JSON.stringify(seoData));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    setSaving(false);
   };
 
   const updateField = (section, field, value) => {

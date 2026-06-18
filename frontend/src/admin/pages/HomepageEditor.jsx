@@ -1,43 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaHome, FaEdit, FaSave, FaPlus, FaMinus } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
+const HOMEPAGE_STORAGE_KEY = "prime-holiday-homepage";
+
+const defaultContent = {
+  heroTitle: "Discover Your Next Adventure",
+  heroSubtitle: "Explore the most beautiful destinations with Prime Holiday",
+  ctaText: "Explore Tours",
+  ctaLink: "/tour",
+  aboutText: "We are a premium travel company dedicated to creating unforgettable experiences.",
+  stats: [{ label: "Happy Travelers", value: "10,000+" }, { label: "Destinations", value: "50+" }],
+};
 
 const HomepageEditor = () => {
-  const [content, setContent] = useState({
-    heroTitle: "",
-    heroSubtitle: "",
-    ctaText: "",
-    ctaLink: "",
-    aboutText: "",
-    stats: [],
+  const [content, setContent] = useState(() => {
+    try {
+      const stored = localStorage.getItem(HOMEPAGE_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultContent;
+    } catch { return defaultContent; }
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const fetchContent = async () => {
-    const res = await fetch(`${API_URL}/api/homepage`);
-    const data = await res.json();
-    setContent(data);
-    setLoading(false);
-  };
-
   const handleSave = async () => {
     setSaving(true);
-    const res = await fetch(`${API_URL}/api/homepage`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(content),
-    });
-    if (res.ok) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    }
+    localStorage.setItem(HOMEPAGE_STORAGE_KEY, JSON.stringify(content));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
     setSaving(false);
   };
 
@@ -60,14 +49,6 @@ const HomepageEditor = () => {
     newStats[index][field] = value;
     setContent({ ...content, stats: newStats });
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">

@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useTours } from "../../context/TourContext";
 import { readImageFileAsDataUrl } from "../../utils/readImageFileAsDataUrl";
 
-const API_URL = "http://localhost:5000";
-
 const initialState = {
   name: "",
   city: "",
@@ -83,38 +81,12 @@ const AddTour = () => {
     setUploadError("");
 
     try {
-      const data = new FormData();
-      data.append("name", formData.name);
-      data.append("city", formData.city);
-      data.append("state", formData.state);
-      data.append("mood", formData.mood);
-      data.append("days", formData.days);
-      data.append("price", formData.price);
-      data.append("discount", formData.discount || "0");
-      data.append("seasonalPricing", formData.seasonalPricing);
-      data.append("availability", formData.availability);
-      data.append("packageName", formData.packageName);
-      data.append("packageDescription", formData.packageDescription);
-      data.append("bestTimeToVisit", formData.bestTimeToVisit);
-      data.append("prec", formData.prec);
-      if (imageFile) {
-        data.append("images", imageFile);
-      }
+      const newTour = {
+        ...formData,
+        image: imagePreview || "",
+        priceRange: formData.price ? `₹${formData.price}` : "",
+      };
 
-      const response = await fetch(`${API_URL}/api/tours`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-        body: data,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create tour");
-      }
-
-      const newTour = await response.json();
       addTour(newTour);
 
       setSubmitted(true);
@@ -291,9 +263,9 @@ const AddTour = () => {
           />
 
           <div className="flex items-center justify-between gap-4 pt-2 md:col-span-2">
-            <p className="text-sm text-slate-500">
-              Tour with image will be saved to server.
-            </p>
+              <p className="text-sm text-slate-500">
+                Tour will be saved locally.
+              </p>
             <button
               disabled={isSubmitting}
               className="rounded-full bg-slate-950 px-6 py-3 text-[11px] font-black uppercase tracking-[0.18em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -305,7 +277,7 @@ const AddTour = () => {
 
         {submitted ? (
           <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-            Tour saved successfully, including its image.
+            Tour saved successfully.
           </div>
         ) : null}
       </div>

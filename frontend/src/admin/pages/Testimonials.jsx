@@ -1,9 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaStar, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaPlus, FaTimes } from "react-icons/fa";
-import { testimonialService } from "../../services/api";
+
+const TESTIMONIALS_STORAGE_KEY = "prime-holiday-testimonials";
+
+const defaultTestimonials = [
+  { id: "t-1", name: "Guest User", role: "Traveller", location: "India", rating: 5, message: "Amazing experience!", status: "active", image: "" },
+];
 
 const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState([]);
+  const [testimonials, setTestimonials] = useState(() => {
+    try {
+      const stored = localStorage.getItem(TESTIMONIALS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultTestimonials;
+    } catch { return defaultTestimonials; }
+  });
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [previewId, setPreviewId] = useState(null);
@@ -17,61 +27,38 @@ const Testimonials = () => {
     imagePreview: "",
   });
 
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
-
-  const fetchTestimonials = async () => {
-    try {
-      const res = await testimonialService.getAll({ limit: 100 });
-      const data = res.data.testimonials || res.data || [];
-      setTestimonials(data.map(t => ({ ...t, id: t._id || t.id })));
-    } catch (err) {
-      console.error("Failed to fetch testimonials:", err);
-    }
+  const saveTestimonials = (updated) => {
+    setTestimonials(updated);
+    localStorage.setItem(TESTIMONIALS_STORAGE_KEY, JSON.stringify(updated));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key !== "imagePreview" && formData[key] !== null) {
-        data.append(key, formData[key]);
-      }
-    });
 
-    try {
-      if (editingId) {
-        await testimonialService.update(editingId, data);
-      } else {
-        await testimonialService.create(data);
-      }
-      fetchTestimonials();
-      closeModal();
-    } catch (err) {
-      console.error("Failed to save testimonial:", err);
+    const testimonial = {
+      ...formData,
+      id: editingId || `t-${Date.now()}`,
+      status: "active",
+      image: formData.imagePreview || formData.image || "",
+    };
+
+    if (editingId) {
+      saveTestimonials(testimonials.map(t => t.id === editingId ? testimonial : t));
+    } else {
+      saveTestimonials([testimonial, ...testimonials]);
     }
+    closeModal();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (window.confirm("Delete this testimonial?")) {
-      try {
-        await testimonialService.delete(id);
-        fetchTestimonials();
-      } catch (err) {
-        console.error("Failed to delete testimonial:", err);
-      }
+      saveTestimonials(testimonials.filter(t => t.id !== id));
     }
   };
 
-  const toggleStatus = async (id, currentStatus) => {
+  const toggleStatus = (id, currentStatus) => {
     const newStatus = currentStatus === "active" ? "hidden" : "active";
-    try {
-      await testimonialService.update(id, { status: newStatus });
-      fetchTestimonials();
-    } catch (err) {
-      console.error("Failed to toggle status:", err);
-    }
+    saveTestimonials(testimonials.map(t => t.id === id ? { ...t, status: newStatus } : t));
   };
 
   const openModal = (testimonial = null) => {
@@ -161,7 +148,7 @@ const Testimonials = () => {
                   <td className="px-4 py-3">
                     {testimonial.image ? (
                       <img
-                        src={`http://localhost:5000${testimonial.image}`}
+                        src={testimonial.image?.startsWith("http") || testimonial.image?.startsWith("data:") ? testimonial.image : "https://placehold.co/200x200?text=User"}
                         alt={testimonial.name}
                         className="h-10 w-10 rounded-full object-cover"
                       />
@@ -237,7 +224,7 @@ const Testimonials = () => {
             <div className="flex flex-col items-center text-center">
               {preview.image ? (
                 <img
-                  src={`http://localhost:5000${preview.image}`}
+                  src={preview.image?.startsWith("http") || preview.image?.startsWith("data:") ? preview.image : "https://placehold.co/200x200?text=User"}
                   alt={preview.name}
                   className="mb-4 h-20 w-20 rounded-full object-cover"
                 />

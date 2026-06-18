@@ -1,13 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaChartLine, FaMoneyBillWave, FaUsers, FaSuitcaseRolling, FaArrowUp, FaArrowDown, FaCalendar, FaSearch } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
-
 const Analytics = () => {
-  const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("30");
   
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalRevenue: 2450000,
     totalBookings: 156,
     totalUsers: 1240,
@@ -42,48 +39,7 @@ const Analytics = () => {
     { id: "BK-1029", guest: "Simran Kaur", tour: "Kerala Backwaters", amount: 32000, date: "2026-04-04", status: "confirmed" },
   ]);
 
-  useEffect(() => {
-    fetchData();
-  }, [dateRange]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [bookingsRes, toursRes, usersRes] = await Promise.all([
-        fetch(`${API_URL}/api/bookings`),
-        fetch(`${API_URL}/api/tours`),
-        fetch(`${API_URL}/api/users`),
-      ]);
-
-      const bookings = await bookingsRes.json();
-      const tours = await toursRes.json();
-      const users = await usersRes.json();
-
-      const totalRevenue = bookings.reduce((sum, b) => sum + (parseInt(b.amount?.replace(/[^0-9]/g, "") || 0)), 0);
-
-      setStats(prev => ({
-        ...prev,
-        totalBookings: bookings.length,
-        totalTours: tours.length,
-        totalUsers: users.length,
-        totalRevenue,
-      }));
-    } catch (err) {
-      console.error("Analytics fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const maxRevenue = Math.max(...monthlyData.map(d => d.revenue));
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaSearch, FaEdit, FaTrash, FaPlus, FaTimes, FaTag, FaToggleOn, FaToggleOff, FaRandom } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
+const COUPONS_STORAGE_KEY = "prime-holiday-coupons";
 
 const generateCouponCode = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -12,8 +12,17 @@ const generateCouponCode = () => {
   return code;
 };
 
+const defaultCoupons = [
+  { id: "cp-1", code: "PRIMEWELCOME", discount: "20", type: "percentage", expiryDate: "", usageLimit: "100", minPurchase: 0, maxDiscount: "2000", active: true, usageCount: 5, createdAt: new Date().toISOString() },
+];
+
 const Coupons = () => {
-  const [coupons, setCoupons] = useState([]);
+  const [coupons, setCoupons] = useState(() => {
+    try {
+      const stored = localStorage.getItem(COUPONS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultCoupons;
+    } catch { return defaultCoupons; }
+  });
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -27,65 +36,35 @@ const Coupons = () => {
     maxDiscount: "",
   });
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
-
-  const fetchCoupons = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/coupons`);
-      const data = await res.json();
-      setCoupons(data.map(c => ({ ...c, id: c._id || c.id })));
-    } catch (err) {
-      console.error("Failed to fetch coupons:", err);
-    }
+  const saveCoupons = (updated) => {
+    setCoupons(updated);
+    localStorage.setItem(COUPONS_STORAGE_KEY, JSON.stringify(updated));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = editingId
-      ? `${API_URL}/api/coupons/${editingId}`
-      : `${API_URL}/api/coupons`;
-    const method = editingId ? "PUT" : "POST";
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        fetchCoupons();
-        closeModal();
-      }
-    } catch (err) {
-      console.error("Failed to save coupon:", err);
+    const coupon = {
+      ...formData,
+      id: editingId || `cp-${Date.now()}`,
+      active: true,
+      usageCount: 0,
+    };
+    if (editingId) {
+      saveCoupons(coupons.map(c => c.id === editingId ? { ...c, ...formData } : c));
+    } else {
+      saveCoupons([coupon, ...coupons]);
     }
+    closeModal();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (window.confirm("Delete this coupon?")) {
-      try {
-        await fetch(`${API_URL}/api/coupons/${id}`, { method: "DELETE" });
-        fetchCoupons();
-      } catch (err) {
-        console.error("Failed to delete coupon:", err);
-      }
+      saveCoupons(coupons.filter(c => c.id !== id));
     }
   };
 
-  const toggleActive = async (id, currentActive) => {
-    try {
-      await fetch(`${API_URL}/api/coupons/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: !currentActive }),
-      });
-      fetchCoupons();
-    } catch (err) {
-      console.error("Failed to toggle coupon:", err);
-    }
+  const toggleActive = (id, currentActive) => {
+    saveCoupons(coupons.map(c => c.id === id ? { ...c, active: !currentActive } : c));
   };
 
   const openModal = (coupon = null) => {

@@ -1,11 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaSearch, FaEdit, FaTrash, FaUserPlus, FaShieldAlt, FaBan, FaCheck, FaEllipsisH } from "react-icons/fa";
-import { userService } from "../../services/api";
 
-const API_URL = "http://localhost:5000";
+const USERS_STORAGE_KEY = "prime-holiday-users";
+
+const defaultUsers = [
+  { id: "user-1", name: "Admin User", email: "admin@primeholiday.com", role: "admin", status: "active", createdAt: new Date().toISOString() },
+  { id: "user-2", name: "Test User", email: "user@test.com", role: "user", status: "active", createdAt: new Date().toISOString() },
+];
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(() => {
+    try {
+      const stored = localStorage.getItem(USERS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultUsers;
+    } catch { return defaultUsers; }
+  });
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -13,41 +22,19 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [activityModal, setActivityModal] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const res = await userService.getAll({ limit: 100 });
-      const data = res.data.users || res.data || [];
-      setUsers(data.map(u => ({
-        ...u,
-        id: u._id || u.id,
-      })));
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
-    }
+  const saveUsers = (updatedUsers) => {
+    setUsers(updatedUsers);
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
   };
 
-  const updateUser = async (id, updates) => {
-    try {
-      await userService.update(id, updates);
-      setUsers(users.map(u => (u._id === id || u.id === id) ? { ...u, ...updates } : u));
-    } catch (err) {
-      console.error("Failed to update user:", err);
-    }
+  const updateUser = (id, updates) => {
+    saveUsers(users.map(u => u.id === id ? { ...u, ...updates } : u));
     setOpenDropdown(null);
   };
 
-  const deleteUser = async (id) => {
+  const deleteUser = (id) => {
     if (window.confirm("Delete this user?")) {
-      try {
-        await userService.delete(id);
-        setUsers(users.filter(u => (u._id || u.id) !== id));
-      } catch (err) {
-        console.error("Failed to delete user:", err);
-      }
+      saveUsers(users.filter(u => u.id !== id));
     }
     setOpenDropdown(null);
   };

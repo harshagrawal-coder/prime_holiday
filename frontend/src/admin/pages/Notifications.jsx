@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaBell, FaCheck, FaTrash, FaEnvelope, FaSuitcaseRolling, FaExclamation, FaInfo, FaTimes } from "react-icons/fa";
-
-const API_URL = "http://localhost:5000";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([

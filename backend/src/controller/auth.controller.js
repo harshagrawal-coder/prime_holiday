@@ -30,6 +30,7 @@ export async function register(req, res) {
         expiresIn: "7d",
       },
     );
+    res.cookie("token", token);
     const userData = user.toObject();
     delete userData.password;
     res.status(201).json({
@@ -79,10 +80,13 @@ export async function login(req, res) {
         expiresIn: "7d",
       },
     );
+    res.cookie("token", token);
+    const userData = user.toObject()
+    delete userData.password
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      data: user,
+      data: userData,
       token: token,
     });
   } catch (error) {
@@ -91,4 +95,13 @@ export async function login(req, res) {
       message: error.message,
     });
   }
+}
+
+export async function GetUser(req, res) {
+  const user = req.user;
+  return res.status(200).json({
+    success: true,
+    message: "user fetched successfully",
+    user
+  });
 }

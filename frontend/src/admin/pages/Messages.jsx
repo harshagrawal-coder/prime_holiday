@@ -1,53 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaEnvelope, FaCheck, FaClock, FaUser, FaEnvelopeOpen } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
+const MESSAGES_STORAGE_KEY = "prime-holiday-messages";
+
+const defaultMessages = [
+  { id: 1, name: "Arjun Mehta", email: "arjun@example.com", subject: "Kashmir Tour Info", msg: "Hey! Can I book the 5-day Kashmir family package for next month?", date: "Today", status: "New" },
+  { id: 2, name: "Sneha Rao", email: "sneha@example.com", subject: "Group Discount", msg: "We are a group of 12 looking for an adventure trip. Any bulk discounts?", date: "Yesterday", status: "New" },
+  { id: 3, name: "Rahul Verma", email: "rahul@example.com", subject: "Wedding Anniversary", msg: "Looking for a romantic destination for our 10th anniversary in June.", date: "2 days ago", status: "Resolved" },
+];
 
 const Messages = () => {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [messages, setMessages] = useState(() => {
+    try {
+      const stored = localStorage.getItem(MESSAGES_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultMessages;
+    } catch { return defaultMessages; }
+  });
   const [filter, setFilter] = useState("all");
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/messages`);
-      if (!response.ok) throw new Error("Failed to fetch messages");
-      const data = await response.json();
-      setMessages(data);
-    } catch (err) {
-      setError(err.message);
-      setMessages([
-        { id: 1, name: "Arjun Mehta", email: "arjun@example.com", subject: "Kashmir Tour Info", msg: "Hey! Can I book the 5-day Kashmir family package for next month?", date: "Today", status: "New" },
-        { id: 2, name: "Sneha Rao", email: "sneha@example.com", subject: "Group Discount", msg: "We are a group of 12 looking for an adventure trip. Any bulk discounts?", date: "Yesterday", status: "New" },
-        { id: 3, name: "Rahul Verma", email: "rahul@example.com", subject: "Wedding Anniversary", msg: "Looking for a romantic destination for our 10th anniversary in June.", date: "2 days ago", status: "Resolved" },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+  const saveMessages = (updated) => {
+    setMessages(updated);
+    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updated));
   };
 
-  const toggleResolve = async (id) => {
+  const toggleResolve = (id) => {
     const msg = messages.find(m => m.id === id);
     const newStatus = msg.status === "New" ? "Resolved" : "New";
-    
-    setMessages(msgs => 
-      msgs.map(m => m.id === id ? { ...m, status: newStatus } : m)
-    );
-
-    try {
-      await fetch(`${API_URL}/api/messages/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-    } catch (err) {
-      console.error("Failed to update status", err);
-    }
+    saveMessages(messages.map(m => m.id === id ? { ...m, status: newStatus } : m));
   };
 
   const filteredMessages = filter === "all" ? messages : messages.filter(m => m.status === filter);
@@ -57,20 +36,6 @@ const Messages = () => {
   const getStatusIcon = (status) => {
     return status === "New" ? <FaEnvelope className="text-xs" /> : <FaEnvelopeOpen className="text-xs" />;
   };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-orange-500">Messages</p>
-          <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900">Contact Inquiries</h2>
-        </div>
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -102,13 +67,6 @@ const Messages = () => {
           </div>
         </div>
       </div>
-
-      {error && (
-        <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-700 flex items-center gap-2">
-          <FaClock className="text-yellow-500" />
-          Using offline data. Server error: {error}
-        </div>
-      )}
 
       {newCount > 0 && filter !== "Resolved" && (
         <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 p-4 text-white shadow-lg">

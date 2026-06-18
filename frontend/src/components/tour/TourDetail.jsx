@@ -15,12 +15,10 @@ import TourCard from "./TourCard";
 import TourCTASection from "./TourCTASection";
 import { getPriceBadge, getStartingPrice, normalizePriceRange } from "./tourUtils";
 
-const API_URL = "http://localhost:5000";
-
 const getImageSrc = (image) => {
   if (!image) return "https://placehold.co/1200x600?text=No+Image";
   if (image.startsWith("http") || image.startsWith("data:")) return image;
-  return `${API_URL}${image}`;
+  return "https://placehold.co/1200x600?text=No+Image";
 };
 
 const statCards = (tour) => [

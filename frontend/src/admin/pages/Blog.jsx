@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaSearch, FaPlus, FaEdit, FaTrash, FaImage, FaBold, FaItalic, FaList, FaLink } from "react-icons/fa";
-import { blogService } from "../../services/api";
+import { useBlogs } from "../../context/BlogContext";
 
 const Blog = () => {
-  const [blogs, setBlogs] = useState([]);
+  const { blogs: contextBlogs, addBlog, editBlog, deleteBlog } = useBlogs();
+  const [blogs, setBlogs] = useState(contextBlogs || []);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -21,36 +22,17 @@ const Blog = () => {
     seoDescription: "",
   });
 
-  useEffect(() => {
-    fetchBlogs();
-  }, []);
-
-  const fetchBlogs = async () => {
-    try {
-      const res = await blogService.getAll({ limit: 100 });
-      const data = res.data.blogs || res.data || [];
-      setBlogs(data.map(b => ({ ...b, id: b._id || b.id })));
-    } catch (err) {
-      console.error("Failed to fetch blogs:", err);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key !== "imagePreview" && formData[key] !== null) {
-        data.append(key, formData[key]);
-      }
-    });
 
     try {
+      const blogPayload = { ...formData, image: imagePreview || formData.image || "" };
       if (editingId) {
-        await blogService.update(editingId, data);
+        editBlog({ ...blogPayload, id: editingId });
       } else {
-        await blogService.create(data);
+        addBlog(blogPayload);
       }
-      fetchBlogs();
+      setBlogs(contextBlogs);
       closeModal();
     } catch (err) {
       console.error("Failed to save blog:", err);
@@ -59,12 +41,8 @@ const Blog = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Delete this blog?")) {
-      try {
-        await blogService.delete(id);
-        fetchBlogs();
-      } catch (err) {
-        console.error("Failed to delete blog:", err);
-      }
+      deleteBlog(id);
+      setBlogs(blogs.filter(b => b.id !== id));
     }
   };
 
@@ -182,7 +160,7 @@ const Blog = () => {
             <div key={blog.id} className="group rounded-xl border border-slate-200 bg-white overflow-hidden hover:shadow-lg transition">
               <div className="aspect-video bg-slate-100 relative">
                 {blog.image ? (
-                  <img src={blog.image?.startsWith("http") ? blog.image : `http://localhost:5000${blog.image}`} alt={blog.title} className="h-full w-full object-cover" />
+                  <img src={blog.image?.startsWith("http") || blog.image?.startsWith("data:") ? blog.image : "https://placehold.co/600x400?text=No+Image"} alt={blog.title} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-400">
                     <FaImage size={32} />
@@ -287,7 +265,7 @@ const Blog = () => {
 
               {imagePreview && (
                 <div className="mb-2">
-                  <img src={imagePreview.startsWith("http") ? imagePreview : `http://localhost:5000${imagePreview}`} alt="Preview" className="h-32 w-full object-cover rounded-lg" />
+                  <img src={imagePreview.startsWith("http") || imagePreview.startsWith("data:") ? imagePreview : "https://placehold.co/600x400?text=No+Image"} alt="Preview" className="h-32 w-full object-cover rounded-lg" />
                 </div>
               )}
 

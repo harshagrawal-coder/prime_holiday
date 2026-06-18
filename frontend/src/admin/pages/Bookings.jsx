@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaSearch, FaFilter, FaDownload, FaEllipsisH, FaCheck, FaTimes, FaClock } from "react-icons/fa";
-import { bookingService } from "../../services/api";
+
+const BOOKINGS_STORAGE_KEY = "prime-holiday-bookings";
 
 const statusOptions = [
   { value: "pending", label: "Pending", color: "orange" },
@@ -14,55 +15,35 @@ const paymentOptions = [
   { value: "refunded", label: "Refunded", color: "gray" },
 ];
 
+const defaultBookings = [
+  { id: "BK-001", userName: "Guest User", tourName: "Sample Tour", date: new Date().toISOString().split("T")[0], status: "pending", payment: "unpaid", amount: "5000" },
+];
+
 const Bookings = () => {
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState(() => {
+    try {
+      const stored = localStorage.getItem(BOOKINGS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultBookings;
+    } catch { return defaultBookings; }
+  });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
-
-  const fetchBookings = async () => {
-    try {
-      const res = await bookingService.getAll({ limit: 100 });
-      const data = res.data.bookings || res.data || [];
-      const enriched = data.map((b, i) => ({
-        ...b,
-        id: b._id || b.id,
-        userName: b.guestName || b.guest || b.user?.name || "Guest",
-        tourName: b.tour?.title || b.tourName || b.tour || "Unknown Tour",
-        date: b.travelDate || b.date || new Date().toISOString().split("T")[0],
-        status: b.status?.toLowerCase() || "pending",
-        payment: b.paymentStatus?.toLowerCase() || b.payment || (i % 3 === 0 ? "unpaid" : i % 3 === 1 ? "paid" : "refunded"),
-        amount: b.finalAmount || b.amount || "0",
-      }));
-      setBookings(enriched);
-    } catch (err) {
-      console.error("Failed to fetch bookings:", err);
-    }
+  const saveBookings = (updatedBookings) => {
+    setBookings(updatedBookings);
+    localStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(updatedBookings));
   };
 
-  const updateStatus = async (id, status) => {
-    try {
-      await bookingService.update(id, { status });
-      setBookings(bookings.map(b => b.id === id ? { ...b, status } : b));
-    } catch (err) {
-      console.error("Failed to update status:", err);
-    }
+  const updateStatus = (id, status) => {
+    saveBookings(bookings.map(b => b.id === id ? { ...b, status } : b));
     setOpenDropdown(null);
   };
 
-  const deleteBooking = async (id) => {
+  const deleteBooking = (id) => {
     if (window.confirm("Delete this booking?")) {
-      try {
-        await bookingService.delete(id);
-        setBookings(bookings.filter(b => b.id !== id));
-      } catch (err) {
-        console.error("Failed to delete booking:", err);
-      }
+      saveBookings(bookings.filter(b => b.id !== id));
     }
     setOpenDropdown(null);
   };

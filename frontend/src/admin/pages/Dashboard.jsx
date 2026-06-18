@@ -4,8 +4,6 @@ import { useTours } from "../../context/TourContext";
 import { useBlogs } from "../../context/BlogContext";
 import { useGallery } from "../../context/GalleryContext";
 
-const API_URL = "http://localhost:5000";
-
 const Dashboard = () => {
   const { tours } = useTours();
   const { blogs } = useBlogs();

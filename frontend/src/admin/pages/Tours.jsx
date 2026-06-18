@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTours } from "../../context/TourContext";
 import { getStartingPrice } from "../../components/tour/tourUtils";
 import { FaTimes } from "react-icons/fa";
 import { readImageFileAsDataUrl } from "../../utils/readImageFileAsDataUrl";
-import { tourService } from "../../services/api";
 
 const getImageSrc = (image) => {
   if (!image) return "https://placehold.co/400x300?text=No+Image";
   if (image.startsWith("http") || image.startsWith("data:")) return image;
-  return `http://localhost:5000${image}`;
+  return "https://placehold.co/400x300?text=No+Image";
 };
 
 const inputClass =
@@ -28,44 +27,14 @@ const createEditDraft = (tour) => ({
 });
 
 const Tours = () => {
-  const [tours, setTours] = useState([]);
+  const { tours: contextTours, editTour, deleteTour: deleteContextTour } = useTours();
+  const [tours, setTours] = useState(contextTours || []);
   const [editingTour, setEditingTour] = useState(null);
   const [uploadError, setUploadError] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const fetchTours = async () => {
-      try {
-        const res = await tourService.getAll({ limit: 100 });
-        const backendTours = res.data.tours || [];
-        
-        const mappedTours = backendTours.map(tour => ({
-          id: tour._id,
-          name: tour.title || tour.packageName || "",
-          city: tour.location?.city || tour.city || "",
-          state: tour.location?.state || tour.state || "",
-          mood: tour.category || tour.mood || "",
-          days: tour.duration || tour.days || "",
-          price: tour.price || "",
-          priceRange: tour.price ? `₹${tour.price}` : "",
-          bestTimeToVisit: tour.bestTimeToVisit || "",
-          prec: tour.description || tour.prec || "",
-          image: tour.images?.[0] || tour.image || "",
-          rating: tour.rating || "New",
-          trending: tour.trending || false,
-          featured: tour.featured || false,
-        }));
-        
-        setTours(mappedTours);
-      } catch (err) {
-        console.error("Failed to fetch tours:", err);
-      }
-    };
-    fetchTours();
-  }, []);
 
   const openEditModal = (tour) => {
     setEditingTour(createEditDraft(tour));
@@ -89,27 +58,16 @@ const Tours = () => {
     setUploadError("");
 
     try {
-      const data = new FormData();
-      data.append("name", editingTour.name);
-      data.append("city", editingTour.city);
-      data.append("state", editingTour.state);
-      data.append("mood", editingTour.mood);
-      data.append("days", editingTour.days);
-      data.append("price", editingTour.price);
-      data.append("bestTimeToVisit", editingTour.bestTimeToVisit);
-      data.append("prec", editingTour.prec);
-      
-      if (imageFile) {
-        data.append("images", imageFile);
-      }
+      const updatedTour = {
+        ...editingTour,
+        image: imagePreview || editingTour.image || "",
+        price: editingTour.price,
+        priceRange: editingTour.price ? `₹${editingTour.price}` : editingTour.priceRange,
+        prec: editingTour.prec || editingTour.description,
+        bestTimeToVisit: editingTour.bestTimeToVisit || editingTour.bestTime,
+      };
 
-      const response = await tourService.update(editingTour.id, data);
-
-      if (response.status !== 200 && response.status !== 201) {
-        throw new Error(response.data.error || "Failed to update tour");
-      }
-
-      const updatedTour = response.data;
+      editTour(updatedTour);
       setTours(tours.map(t => t.id === updatedTour.id ? updatedTour : t));
       closeEditModal();
     } catch (error) {
@@ -161,12 +119,8 @@ const Tours = () => {
 
   const handleDeleteTour = async (id) => {
     if (window.confirm("Delete this tour?")) {
-      try {
-        await tourService.delete(id);
-        setTours(tours.filter(t => t.id !== id));
-      } catch (error) {
-        console.error("Failed to delete tour:", error);
-      }
+      deleteContextTour(id);
+      setTours(tours.filter(t => t.id !== id));
     }
   };
 

@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useBlogs } from "../../context/BlogContext";
 import { readImageFileAsDataUrl } from "../../utils/readImageFileAsDataUrl";
 
-const API_URL = "http://localhost:5000";
-
 const initialState = {
   title: "",
   category: "",
@@ -76,28 +74,11 @@ const AddBlog = () => {
     setUploadError("");
 
     try {
-      const data = new FormData();
-      data.append("title", formData.title);
-      data.append("category", formData.category);
-      data.append("author", formData.author);
-      data.append("readTime", formData.readTime);
-      data.append("excerpt", formData.excerpt);
-      data.append("content", formData.content);
-      if (imageFile) {
-        data.append("image", imageFile);
-      }
+      const newBlog = {
+        ...formData,
+        image: imagePreview || "",
+      };
 
-      const response = await fetch(`${API_URL}/api/blogs`, {
-        method: "POST",
-        body: data,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create blog");
-      }
-
-      const newBlog = await response.json();
       addBlog(newBlog);
 
       setSubmitted(true);
@@ -175,7 +156,7 @@ const AddBlog = () => {
           />
 
           <div className="md:col-span-2 flex items-center justify-between gap-4 pt-2">
-            <p className="text-sm text-slate-500">Blog post will be saved to server.</p>
+            <p className="text-sm text-slate-500">Blog post will be saved locally.</p>
             <button 
               disabled={isSubmitting}
               className="rounded-full bg-slate-950 px-6 py-3 text-[11px] font-black uppercase tracking-[0.18em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -187,7 +168,7 @@ const AddBlog = () => {
 
         {submitted ? (
           <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-            Blog post published successfully!
+            Blog post saved successfully!
           </div>
         ) : null}
       </div>

@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { authService } from "../../services/api";
 
 const ADMIN_STORAGE_KEY = "prime-holiday-admin-auth";
 
@@ -10,46 +9,22 @@ export const AdminAuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
     const savedAdmin = localStorage.getItem(ADMIN_STORAGE_KEY);
-    
-    if (token && savedAdmin) {
+    if (savedAdmin) {
       setAdmin(JSON.parse(savedAdmin));
-      checkAuth();
     }
     setLoading(false);
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const res = await authService.getMe();
-      setAdmin(res.data.user);
-      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(res.data.user));
-    } catch (error) {
-      logout();
-    }
-  };
-
   const login = async (email, password) => {
-    try {
-      const res = await authService.login({ email, password });
-      const { token, user } = res.data;
-      
-      if (user.role !== "admin") {
-        return { success: false, message: "Access denied. Admin only." };
-      }
-      
-      localStorage.setItem("adminToken", token);
+    if (email === "admin@primeholiday.com" && password === "admin123") {
+      const user = { email: "admin@primeholiday.com", name: "Admin", role: "admin" };
+      localStorage.setItem("adminToken", "local-admin-token");
       localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(user));
       setAdmin(user);
-      
       return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Login failed",
-      };
     }
+    return { success: false, message: "Invalid credentials. Use admin@primeholiday.com / admin123" };
   };
 
   const logout = () => {
