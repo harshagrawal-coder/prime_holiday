@@ -1,9 +1,10 @@
 import app from "./src/app.js";
 import { connectDB } from "./src/config/database.js";
+import redisClient from "./src/services/redis.js";
 const startServer = async () => {
   try {
     await connectDB();
-
+    await redisClient.connect();
     app.listen(8080, () => {
       console.log(`Server is running on port`);
     });

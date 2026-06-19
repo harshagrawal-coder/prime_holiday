@@ -1,7 +1,7 @@
 import User from "../model.js/userSchema.js";
 import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
-
+import redisClient from "../services/redis.js";
 export async function register(req, res) {
   const { email, fullname, password } = req.body;
 
@@ -81,8 +81,8 @@ export async function login(req, res) {
       },
     );
     res.cookie("token", token);
-    const userData = user.toObject()
-    delete userData.password
+    const userData = user.toObject();
+    delete userData.password;
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
@@ -102,6 +102,80 @@ export async function GetUser(req, res) {
   return res.status(200).json({
     success: true,
     message: "user fetched successfully",
-    user
+    user,
   });
+}
+
+export async function updateUserProfile(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const { fullname, password } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    if (fullname) {
+      user.fullname = fullname;
+    }
+    if (password) {
+      user.password = password;
+    }
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+export async function logoutUser(req, res) {
+  try {
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Token is missing",
+      });
+    }
+
+    const decoded = jwt.verify(token, config.JWT_SECRET);
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    const ttl = decoded.exp - currentTime;
+
+    if (ttl > 0) {
+      await redisClient.set(token, "blacklisted", {
+        EX: ttl,
+      });
+    }
+
+    res.clearCookie("token");
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 }
