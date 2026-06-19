@@ -1,10 +1,10 @@
 import { Link, useParams } from "react-router-dom";
-import { useTours } from "../context/TourContext";
+import toursData from "../data/toursData.json";
 import TourDetail from "../components/tour/TourDetail";
 
 const TourDetailsPage = () => {
   const { id } = useParams();
-  const { tours } = useTours();
+  const tours = toursData;
   const tour = tours.find((item) => String(item.id) === String(id));
 
   if (!tour) {

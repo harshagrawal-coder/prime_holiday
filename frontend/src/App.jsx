@@ -2,7 +2,6 @@ import React, { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import PageLoader from "./components/ui/PageLoader";
-import ProtectedRoute from "./admin/routes/ProtectedRoute";
 import AdminLayout from "./admin/layout/AdminLayout";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -78,14 +77,7 @@ const UserApp = () => (
 const AdminApp = () => (
   <Routes>
     <Route path="login" element={<AdminLoginPage />} />
-    <Route
-      path=""
-      element={
-        <ProtectedRoute>
-          <AdminLayout />
-        </ProtectedRoute>
-      }
-    >
+    <Route path="" element={<AdminLayout />}>
       <Route index element={<AdminDashboardPage />} />
       <Route path="bookings" element={<AdminBookingsPage />} />
       <Route path="tours" element={<AdminToursPage />} />

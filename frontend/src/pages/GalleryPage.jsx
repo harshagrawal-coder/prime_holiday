@@ -5,11 +5,9 @@ import GalleryGrid from "../components/gallery/GalleryGrid";
 import Lightbox from "../components/gallery/Lightbox";
 import FeaturedDestinationsRow from "../components/gallery/FeaturedDestinationsRow";
 import GalleryCTASection from "../components/gallery/GalleryCTASection";
-import { galleryCategories } from "../data/galleryItems";
-import { useGallery } from "../context/GalleryContext";
+import { galleryCategories, galleryItems } from "../data/galleryItems";
 
 const GalleryPage = () => {
-  const { images: galleryItems } = useGallery();
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeItem, setActiveItem] = useState(null);
 

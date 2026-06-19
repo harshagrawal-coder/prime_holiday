@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTours } from "../../context/TourContext";
+import toursData from "../../data/toursData.json";
 import { getStartingPrice } from "../../components/tour/tourUtils";
 import { FaTimes } from "react-icons/fa";
 import { readImageFileAsDataUrl } from "../../utils/readImageFileAsDataUrl";
@@ -26,9 +26,17 @@ const createEditDraft = (tour) => ({
   prec: tour.prec || tour.description || "",
 });
 
+const TOURS_STORAGE_KEY = "prime-holiday-tours";
+
+const getStoredTours = () => {
+  try {
+    const stored = localStorage.getItem(TOURS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch { return null; }
+};
+
 const Tours = () => {
-  const { tours: contextTours, editTour, deleteTour: deleteContextTour } = useTours();
-  const [tours, setTours] = useState(contextTours || []);
+  const [tours, setTours] = useState(() => getStoredTours() || toursData);
   const [editingTour, setEditingTour] = useState(null);
   const [uploadError, setUploadError] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -67,8 +75,9 @@ const Tours = () => {
         bestTimeToVisit: editingTour.bestTimeToVisit || editingTour.bestTime,
       };
 
-      editTour(updatedTour);
-      setTours(tours.map(t => t.id === updatedTour.id ? updatedTour : t));
+      const updatedTours = tours.map(t => t.id === updatedTour.id ? updatedTour : t);
+      setTours(updatedTours);
+      localStorage.setItem(TOURS_STORAGE_KEY, JSON.stringify(updatedTours));
       closeEditModal();
     } catch (error) {
       setUploadError(error.message);
@@ -117,10 +126,11 @@ const Tours = () => {
     setUploadError("");
   };
 
-  const handleDeleteTour = async (id) => {
+  const handleDeleteTour = (id) => {
     if (window.confirm("Delete this tour?")) {
-      deleteContextTour(id);
-      setTours(tours.filter(t => t.id !== id));
+      const updatedTours = tours.filter(t => t.id !== id);
+      setTours(updatedTours);
+      localStorage.setItem(TOURS_STORAGE_KEY, JSON.stringify(updatedTours));
     }
   };
 

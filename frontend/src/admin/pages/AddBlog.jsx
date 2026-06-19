@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useBlogs } from "../../context/BlogContext";
+import { blogPosts as defaultBlogs } from "../../data/blogPosts.js";
 import { readImageFileAsDataUrl } from "../../utils/readImageFileAsDataUrl";
 
 const initialState = {
@@ -14,8 +14,9 @@ const initialState = {
 const inputClassName =
   "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-500/20";
 
+const BLOG_STORAGE_KEY = "prime-holiday-blogs";
+
 const AddBlog = () => {
-  const { addBlog } = useBlogs();
   const [formData, setFormData] = useState(initialState);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -79,7 +80,14 @@ const AddBlog = () => {
         image: imagePreview || "",
       };
 
-      addBlog(newBlog);
+      const stored = localStorage.getItem(BLOG_STORAGE_KEY);
+      const existing = stored ? JSON.parse(stored) : defaultBlogs;
+      const updated = [{
+        ...newBlog,
+        id: Date.now(),
+        date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+      }, ...existing];
+      localStorage.setItem(BLOG_STORAGE_KEY, JSON.stringify(updated));
 
       setSubmitted(true);
       setUploadError("");

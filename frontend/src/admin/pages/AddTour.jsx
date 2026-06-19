@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTours } from "../../context/TourContext";
+import toursData from "../../data/toursData.json";
 import { readImageFileAsDataUrl } from "../../utils/readImageFileAsDataUrl";
 
 const initialState = {
@@ -21,8 +21,9 @@ const initialState = {
 const inputClassName =
   "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-500/20";
 
+const TOURS_STORAGE_KEY = "prime-holiday-tours";
+
 const AddTour = () => {
-  const { addTour } = useTours();
   const [formData, setFormData] = useState(initialState);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -87,7 +88,10 @@ const AddTour = () => {
         priceRange: formData.price ? `₹${formData.price}` : "",
       };
 
-      addTour(newTour);
+      const stored = localStorage.getItem(TOURS_STORAGE_KEY);
+      const existing = stored ? JSON.parse(stored) : toursData;
+      const updated = [{ ...newTour, id: Date.now(), rating: "New", trending: false }, ...existing];
+      localStorage.setItem(TOURS_STORAGE_KEY, JSON.stringify(updated));
 
       setSubmitted(true);
       setUploadError("");

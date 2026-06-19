@@ -1,14 +1,7 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { useUserAuth } from "../../context/UserAuthContext";
 
 const UserLayout = () => {
-  const { isAuthenticated } = useUserAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
   return (
     <div className="flex min-h-screen bg-[#F7F7FB] font-sans">
       <Sidebar />

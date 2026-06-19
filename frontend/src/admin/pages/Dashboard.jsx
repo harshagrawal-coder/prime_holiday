@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { FaCalendarCheck, FaSuitcaseRolling, FaUsers, FaPlus, FaTrash, FaChartLine, FaEnvelope, FaImage, FaRupeeSign, FaChevronDown } from "react-icons/fa";
-import { useTours } from "../../context/TourContext";
-import { useBlogs } from "../../context/BlogContext";
-import { useGallery } from "../../context/GalleryContext";
+import toursData from "../../data/toursData.json";
+import { blogPosts } from "../../data/blogPosts.js";
+import { galleryItems } from "../../data/galleryItems.js";
 
 const Dashboard = () => {
-  const { tours } = useTours();
-  const { blogs } = useBlogs();
-  const { images } = useGallery();
+  const tours = toursData;
+  const blogs = blogPosts;
+  const images = galleryItems;
   
   const [stats, setStats] = useState({
     bookings: 0,
@@ -22,13 +22,11 @@ const Dashboard = () => {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    const usersStr = localStorage.getItem("prime-holiday-users");
     const bookingsStr = localStorage.getItem("prime-holiday-bookings");
     const messagesStr = localStorage.getItem("prime-holiday-messages");
 
     const bookings = bookingsStr ? JSON.parse(bookingsStr) : [];
     const messages = messagesStr ? JSON.parse(messagesStr) : [];
-    const users = usersStr ? JSON.parse(usersStr) : [];
     const newMsgs = messages.filter(m => m.status === "New").length;
     const revenue = bookings.reduce((sum, b) => sum + (parseInt(b.amount?.replace(/[^0-9]/g, "")) || 0), 0);
 
@@ -68,10 +66,12 @@ const Dashboard = () => {
     localStorage.setItem("prime-holiday-notes", JSON.stringify(updatedNotes));
   };
 
+  const usersCount = JSON.parse(localStorage.getItem("prime-holiday-users") || "[]").length || 48;
+
   const statCards = [
     { label: "Total Bookings", value: stats.bookings, icon: FaCalendarCheck, tone: "bg-emerald-50 text-emerald-600", trend: "+18%" },
     { label: "Total Tours", value: tours.length, icon: FaSuitcaseRolling, tone: "bg-orange-50 text-orange-600", trend: "+5%" },
-    { label: "Active Users", value: JSON.parse(localStorage.getItem("prime-holiday-users") || "[]").length || 48, icon: FaUsers, tone: "bg-sky-50 text-sky-600", trend: "+12%" },
+    { label: "Active Users", value: usersCount, icon: FaUsers, tone: "bg-sky-50 text-sky-600", trend: "+12%" },
     { label: "Total Blogs", value: blogs.length, icon: FaChartLine, tone: "bg-violet-50 text-violet-600", trend: "+8%" },
   ];
 

@@ -3,7 +3,7 @@ import { FaFilter, FaTimes } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import { useTourFilters } from "../../hooks/useTourFilters";
-import { useTours } from "../../context/TourContext";
+import toursData from "../../data/toursData.json";
 import TourFiltersContent from "./TourFiltersContent";
 import TourGrid from "./TourGrid";
 import TourHeroBanner from "./TourHeroBanner";
@@ -28,7 +28,7 @@ const vibeToCategoryMap = {
 };
 
 const TourExplorerSection = () => {
-  const { tours } = useTours();
+  const tours = toursData;
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategoryFromUrl = useMemo(
     () => searchParams.get("category")?.toLowerCase() || "",
@@ -50,7 +50,7 @@ const TourExplorerSection = () => {
     displayStates,
     displayCities,
     resetFilters,
-  } = useTourFilters({ selectedVibeExternal: selectedVibe });
+  } = useTourFilters({ selectedVibeExternal: selectedVibe, tours });
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 

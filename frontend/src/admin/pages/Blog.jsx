@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { FaSearch, FaPlus, FaEdit, FaTrash, FaImage, FaBold, FaItalic, FaList, FaLink } from "react-icons/fa";
-import { useBlogs } from "../../context/BlogContext";
+import { blogPosts as defaultBlogs } from "../../data/blogPosts.js";
+
+const BLOG_STORAGE_KEY = "prime-holiday-blogs";
+
+const getStoredBlogs = () => {
+  try {
+    const stored = localStorage.getItem(BLOG_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch { return null; }
+};
 
 const Blog = () => {
-  const { blogs: contextBlogs, addBlog, editBlog, deleteBlog } = useBlogs();
-  const [blogs, setBlogs] = useState(contextBlogs || []);
+  const [blogs, setBlogs] = useState(() => getStoredBlogs() || defaultBlogs);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -26,23 +34,33 @@ const Blog = () => {
     e.preventDefault();
 
     try {
-      const blogPayload = { ...formData, image: imagePreview || formData.image || "" };
+      const blogPayload = {
+        ...formData,
+        id: editingId || Date.now(),
+        image: imagePreview || formData.image || "",
+        date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+      };
+      const existing = localStorage.getItem(BLOG_STORAGE_KEY);
+      const currentBlogs = existing ? JSON.parse(existing) : defaultBlogs;
+      let updatedBlogs;
       if (editingId) {
-        editBlog({ ...blogPayload, id: editingId });
+        updatedBlogs = currentBlogs.map(b => b.id === editingId ? blogPayload : b);
       } else {
-        addBlog(blogPayload);
+        updatedBlogs = [blogPayload, ...currentBlogs];
       }
-      setBlogs(contextBlogs);
+      localStorage.setItem(BLOG_STORAGE_KEY, JSON.stringify(updatedBlogs));
+      setBlogs(updatedBlogs);
       closeModal();
     } catch (err) {
       console.error("Failed to save blog:", err);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (window.confirm("Delete this blog?")) {
-      deleteBlog(id);
-      setBlogs(blogs.filter(b => b.id !== id));
+      const updatedBlogs = blogs.filter(b => b.id !== id);
+      setBlogs(updatedBlogs);
+      localStorage.setItem(BLOG_STORAGE_KEY, JSON.stringify(updatedBlogs));
     }
   };
 

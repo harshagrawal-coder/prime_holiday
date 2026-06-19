@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { FaWallet, FaSuitcaseRolling, FaHeart, FaPlaneArrival, FaArrowRight, FaChevronDown } from "react-icons/fa";
-import { useUserAuth } from "../../context/UserAuthContext";
 
 const DashboardHome = () => {
-  const { user } = useUserAuth();
   const [showQuickLinks, setShowQuickLinks] = useState(false);
 
   const stats = [

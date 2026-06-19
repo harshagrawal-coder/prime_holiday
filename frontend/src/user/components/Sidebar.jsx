@@ -1,6 +1,5 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { FaHome, FaSuitcaseRolling, FaHeart, FaUserCircle, FaSignOutAlt, FaCog, FaBell } from "react-icons/fa";
-import { useUserAuth } from "../../context/UserAuthContext";
+import { Link, NavLink } from "react-router-dom";
+import { FaHome, FaSuitcaseRolling, FaHeart, FaUserCircle } from "react-icons/fa";
 
 const navItems = [
   { label: "Overview", to: "/dashboard", icon: FaHome, end: true },
@@ -10,14 +9,6 @@ const navItems = [
 ];
 
 const Sidebar = () => {
-  const { logout, user } = useUserAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
   return (
     <aside className="hidden w-64 flex-col bg-white border-r border-slate-100 lg:flex sticky top-0 h-screen">
       <div className="flex h-20 items-center px-8 border-b border-slate-50">
@@ -29,11 +20,11 @@ const Sidebar = () => {
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mb-8 flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-orange-600 font-black text-xl">
-            {user?.name?.charAt(0).toUpperCase() || "U"}
+            U
           </div>
           <div>
             <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Welcome back</p>
-            <p className="text-sm font-bold text-slate-900 truncate w-32">{user?.name || "Traveler"}</p>
+            <p className="text-sm font-bold text-slate-900 truncate w-32">Traveler</p>
           </div>
         </div>
 
@@ -56,16 +47,6 @@ const Sidebar = () => {
             </NavLink>
           ))}
         </nav>
-      </div>
-
-      <div className="p-6 border-t border-slate-50">
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-widest text-red-500 transition-all duration-300 hover:bg-red-50 hover:text-red-700"
-        >
-          <FaSignOutAlt size={16} />
-          Logout
-        </button>
       </div>
     </aside>
   );

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useTours } from "../context/TourContext";
 import locationData from "../data/locationData.json";
 
 const FILTERS_STORAGE_KEY = "prime-holiday-tour-filters";
@@ -43,8 +42,7 @@ const saveFilters = (filters) => {
   }
 };
 
-export const useTourFilters = ({ selectedVibeExternal } = {}) => {
-  const { tours } = useTours();
+export const useTourFilters = ({ selectedVibeExternal, tours = [] } = {}) => {
   const initialFilters = getInitialFilters();
   
   const [selectedRegion, setSelectedRegion] = useState(initialFilters.selectedRegion);

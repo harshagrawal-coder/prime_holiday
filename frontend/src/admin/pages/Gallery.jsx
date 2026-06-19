@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { FaImages, FaUpload, FaTrash, FaSearch, FaCheck, FaTimes, FaTag, FaPlus, FaEdit, FaCloudUploadAlt } from "react-icons/fa";
-import { useGallery } from "../../context/GalleryContext";
+import { galleryItems as defaultGallery } from "../../data/galleryItems.js";
 
 const getImageSrc = (image) => {
   if (!image) return "https://placehold.co/400x400?text=No+Image";
@@ -8,9 +8,17 @@ const getImageSrc = (image) => {
   return "https://placehold.co/400x400?text=No+Image";
 };
 
+const GALLERY_STORAGE_KEY = "prime-holiday-gallery";
+
+const getStoredGallery = () => {
+  try {
+    const stored = localStorage.getItem(GALLERY_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch { return null; }
+};
+
 const Gallery = () => {
-  const { images: contextImages, addImage, deleteImage: deleteContextImage } = useGallery();
-  const [images, setImages] = useState(contextImages || []);
+  const [images, setImages] = useState(() => getStoredGallery() || defaultGallery);
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
@@ -68,16 +76,18 @@ const Gallery = () => {
         tags: [],
         heightClass: "h-[300px]",
       };
-      addImage(newImage);
-      setImages(prev => [newImage, ...prev]);
+      const updatedImages = [newImage, ...images];
+      setImages(updatedImages);
+      localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(updatedImages));
     }
     setUploadQueue([]);
   };
 
   const deleteImage = (id) => {
     if (window.confirm("Delete this image?")) {
-      deleteContextImage(id);
-      setImages(images.filter(img => img.id !== id));
+      const updatedImages = images.filter(img => img.id !== id);
+      setImages(updatedImages);
+      localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(updatedImages));
       setSelectedImages(selectedImages.filter(imgId => imgId !== id));
     }
   };

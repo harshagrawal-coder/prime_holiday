@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAdminAuth } from "../context/AdminAuthContext";
+import { useNavigate } from "react-router-dom";
+
+const ADMIN_STORAGE_KEY = "prime-holiday-admin-auth";
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAdminAuth();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
@@ -15,7 +14,7 @@ const Login = () => {
     setError("");
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     if (!formData.email.trim() || !formData.password.trim()) {
@@ -23,15 +22,14 @@ const Login = () => {
       return;
     }
 
-    const result = await login(formData.email, formData.password);
-
-    if (!result.success) {
-      setError(result.message);
-      return;
+    if (formData.email === "admin@primeholiday.com" && formData.password === "admin123") {
+      const user = { email: "admin@primeholiday.com", name: "Admin", role: "admin" };
+      localStorage.setItem("adminToken", "local-admin-token");
+      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(user));
+      navigate("/admin", { replace: true });
+    } else {
+      setError("Invalid credentials. Use admin@primeholiday.com / admin123");
     }
-
-    const fallbackPath = location.state?.from?.startsWith("/admin") ? location.state.from : "/admin";
-    navigate(fallbackPath, { replace: true });
   };
 
   return (

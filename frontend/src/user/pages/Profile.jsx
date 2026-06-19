@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useUserAuth } from "../../context/UserAuthContext";
 
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white";
 
 const Profile = () => {
-  const { user } = useUserAuth();
   const [profile, setProfile] = useState({
-    name: user?.name || "Traveler",
-    email: user?.email || "user@example.com",
+    name: "Traveler",
+    email: "user@example.com",
     phone: "+91 98765 43210",
   });
 

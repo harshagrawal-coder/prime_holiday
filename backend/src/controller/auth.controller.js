@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 
 export async function register(req, res) {
-  const { email, name, password } = req.body;
+  const { email, fullname, password } = req.body;
 
   try {
     const existingUser = await User.findOne({ email });
@@ -14,7 +14,7 @@ export async function register(req, res) {
       });
     }
     const user = await User.create({
-      name,
+      fullname,
       email,
       password,
       role: "user",
@@ -23,7 +23,7 @@ export async function register(req, res) {
       {
         id: user._id,
         email: user.email,
-        name: user.name,
+        fullname: user.fullname,
       },
       config.JWT_SECRET,
       {

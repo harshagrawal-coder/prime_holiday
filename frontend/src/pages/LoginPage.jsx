@@ -1,41 +1,7 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Lock, Mail, ShieldCheck } from "lucide-react";
-import { useUserAuth } from "../context/UserAuthContext";
+import { Link } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const { login } = useUserAuth();
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
-    setError("");
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
-
-    const result = login(formData);
-
-    setLoading(false);
-
-    if (!result.success) {
-      setError(result.message);
-      return;
-    }
-
-    setMessage("Login successful! Welcome back.");
-    // Redirect to home or user dashboard
-    setTimeout(() => navigate("/"), 1500);
-  };
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950">
@@ -101,72 +67,18 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-slate-200">Email</span>
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/80 px-4 py-3 text-slate-900 shadow-lg shadow-black/5 transition-all focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-400/40">
-                    <Mail size={18} className="text-orange-500" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email"
-                      className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-                </label>
-
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-slate-200">Password</span>
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/80 px-4 py-3 text-slate-900 shadow-lg shadow-black/5 transition-all focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-400/40">
-                    <Lock size={18} className="text-orange-500" />
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="Enter your password"
-                      className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-                </label>
-
-                {error ? (
-                  <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                    {error}
+              <div className="mt-8 space-y-5">
+                <div className="rounded-3xl border border-white/10 bg-slate-950/35 p-6 text-sm text-slate-200 text-center">
+                  <ShieldCheck className="mx-auto mb-3 text-orange-400" size={32} />
+                  <p className="font-semibold text-white text-base">User Authentication</p>
+                  <p className="mt-2 leading-relaxed text-slate-300">
+                    User login and registration will be available soon with the Redux implementation.
+                    In the meantime, use the admin panel to manage content.
                   </p>
-                ) : null}
-
-                {message ? (
-                  <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-                    {message}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="inline-flex w-full items-center justify-center rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-xl shadow-orange-500/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-400 disabled:opacity-50"
-                >
-                  {loading ? "Signing In..." : "Sign In"}
-                </button>
-              </form>
+                </div>
+              </div>
 
               <div className="mt-6 space-y-4">
-                <div className="rounded-3xl border border-white/10 bg-slate-950/35 p-4 text-sm text-slate-200">
-                  <p className="font-semibold text-white">Don't have an account?</p>
-                  <p className="mt-1 leading-relaxed text-slate-300">
-                    Create a new account to track saved tours, bookings, and trip history.
-                  </p>
-                  <Link
-                    to="/register"
-                    className="mt-4 inline-flex items-center rounded-full border border-orange-400/30 px-4 py-2 font-semibold text-orange-300 transition-all duration-300 hover:border-orange-400 hover:bg-orange-500 hover:text-white"
-                  >
-                    Create Account
-                  </Link>
-                </div>
-
                 <div className="rounded-3xl border border-white/10 bg-slate-950/35 p-4 text-sm text-slate-200">
                   <p className="font-semibold text-white">Need admin access?</p>
                   <p className="mt-1 leading-relaxed text-slate-300">

@@ -1,16 +1,18 @@
 import { FaBars, FaBell, FaSignOutAlt } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAdminAuth } from "../context/AdminAuthContext";
-import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+const ADMIN_STORAGE_KEY = "prime-holiday-admin-auth";
 
 const Topbar = ({ onOpenSidebar }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { admin, logout } = useAdminAuth();
   const [unreadCount, setUnreadCount] = useState(3);
 
+  const admin = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || "null");
+
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
     navigate("/admin/login", { replace: true });
   };
 

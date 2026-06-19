@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaCalendarAlt, FaUser, FaMapMarkerAlt, FaStar, FaCheck, FaArrowLeft, FaCreditCard, FaMobileAlt, FaWallet } from "react-icons/fa";
-import { useTours } from "../context/TourContext";
+import toursData from "../data/toursData.json";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Argentina", "Australia", "Austria", "Bahrain", "Bangladesh",
@@ -19,14 +19,14 @@ const countries = [
 const ReservePage = () => {
   const [searchParams] = useSearchParams();
   const tourId = searchParams.get("tourId");
-  const { tours } = useTours();
+  const tours = toursData;
   
-  const [tourFromContext, setTourFromContext] = useState(null);
+  const [selectedTour, setSelectedTour] = useState(null);
   const [isSearching, setIsSearching] = useState(true);
 
   useEffect(() => {
     if (!tourId || !tours || tours.length === 0) {
-      setTourFromContext(null);
+      setSelectedTour(null);
       setIsSearching(false);
       return;
     }
@@ -38,7 +38,7 @@ const ReservePage = () => {
       return idStr === normalizedId || t.id === Number(normalizedId);
     });
     
-    setTourFromContext(found || null);
+    setSelectedTour(found || null);
     setIsSearching(false);
   }, [tourId, tours]);
   
@@ -75,10 +75,10 @@ const ReservePage = () => {
 
   const hasTourId = tourId !== null;
   const isLoadingTours = !tours || tours.length === 0;
-  const tourFound = !!tourFromContext;
+  const tourFound = !!selectedTour;
   const isLoading = isSearching || isLoadingTours;
   
-  const tourData = tourFromContext || {
+  const tourData = selectedTour || {
     name: "Select a Tour",
     city: "Unknown",
     state: "Unknown",

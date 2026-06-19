@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { FaHeart, FaArrowRight } from "react-icons/fa";
-import { useTours } from "../../context/TourContext";
+import toursData from "../../data/toursData.json";
 import { getStartingPrice } from "../../components/tour/tourUtils";
 
 const SavedTrips = () => {
-  const { tours } = useTours();
+  const tours = toursData;
   const [savedTours, setSavedTours] = useState(tours.slice(0, 4));
 
   const removeSaved = (id) => {
