@@ -29,7 +29,6 @@ export async function authenticate(req, res, next) {
 
     req.token = token;
     req.user = user;
-    console.log(req.user.role);
     next();
   } catch (error) {
     return res.status(500).json({
