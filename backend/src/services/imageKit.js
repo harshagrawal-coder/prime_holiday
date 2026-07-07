@@ -7,25 +7,38 @@ const imagekit = new ImageKit({
   urlEndpoint: config.IMAGEKIT_URLENDPOINT,
 });
 
-export const uploadFile = async ({
-  file,
-  fileName,
-  folder = "/uploads",
-}) => {
+export const uploadFile = async ({ file, fileName, folder = "/uploads" }) => {
   try {
     if (!file) {
       throw new Error("File is required");
     }
 
-    const response = await imagekit.upload({
-      file,
+    if (!fileName) {
+      throw new Error("File name is required");
+    }
+    const response = await imagekit.files.upload({
+      file: file.toString("base64"),
       fileName,
       folder,
       useUniqueFileName: true,
     });
 
-    return response;
+    return {
+      fileId: response.fileId,
+      name: response.name,
+      url: response.url,
+      thumbnailUrl: response.thumbnailUrl,
+    };
   } catch (error) {
+    console.error(error);
     throw new Error(`Image upload failed: ${error.message}`);
   }
 };
+
+export async function deleteFile(fileId) {
+  try {
+    await imagekit.files.delete(fileId);
+  } catch (error) {
+    console.error(`Failed to delete ${fileId}:`, error.message);
+  }
+}

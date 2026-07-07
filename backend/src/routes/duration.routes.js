@@ -15,3 +15,4 @@ durationRouter.get("/:id", getDurationById);
 durationRouter.put("/:id", authenticate, isAdmin, updateDuration);
 durationRouter.delete("/:id", authenticate, isAdmin, deleteDuration);
 export default durationRouter;
+
