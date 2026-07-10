@@ -131,3 +131,67 @@ export const validateCreateTour = [
 
   validateRequest,
 ];
+export const validateUpdateTour = [
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Tour name cannot be empty")
+    .isLength({ min: 3, max: 100 })
+    .withMessage("Tour name must be between 3 and 100 characters"),
+
+  body("overview")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Overview cannot be empty")
+    .isLength({ min: 20, max: 500 })
+    .withMessage("Overview must be between 20 and 500 characters"),
+
+  body("description")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Description cannot be empty")
+    .isLength({ min: 50 })
+    .withMessage("Description must contain at least 50 characters"),
+
+  body("cityId").optional().isMongoId().withMessage("Invalid city ID"),
+
+  body("moodId").optional().isMongoId().withMessage("Invalid mood ID"),
+
+  body("durationId").optional().isMongoId().withMessage("Invalid duration ID"),
+
+  body("price")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Price must be a positive number"),
+
+  body("discountPrice")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Discount price must be a positive number"),
+
+  body("bestTimeToVisit")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Best time to visit cannot be empty"),
+
+  body("featured")
+    .optional()
+    .isBoolean()
+    .withMessage("Featured must be true or false"),
+
+  body("trending")
+    .optional()
+    .isBoolean()
+    .withMessage("Trending must be true or false"),
+
+  body("isActive")
+    .optional()
+    .isBoolean()
+    .withMessage("isActive must be true or false"),
+
+  validateRequest,
+];

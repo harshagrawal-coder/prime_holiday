@@ -6,6 +6,7 @@ import stateRouter from "./routes/state.routes.js";
 import cityRouter from "./routes/city.routes.js";
 import moodRouter from "./routes/mood.routes.js";
 import durationRouter from "./routes/duration.routes.js";
+import galleryRouter from "./routes/gallery.routes.js";
 import cookie from "cookie-parser";
 const app = express();
 
@@ -19,4 +20,23 @@ app.use("/api/state", stateRouter);
 app.use("/api/city", cityRouter);
 app.use("/api/mood", moodRouter);
 app.use("/api/duration", durationRouter);
+app.use("/api/gallery",galleryRouter)
+
+import multer from "multer";
+
+app.use((err, req, res, next) => {
+  console.log("======================");
+  console.log("ERROR NAME:", err.name);
+  console.log("ERROR CODE:", err.code);
+  console.log("ERROR FIELD:", err.field);
+  console.log(err);
+
+  return res.status(500).json({
+    success: false,
+    name: err.name,
+    code: err.code,
+    field: err.field,
+    message: err.message,
+  });
+});
 export default app;

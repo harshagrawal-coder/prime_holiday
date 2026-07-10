@@ -558,21 +558,204 @@ export async function deleteTour(req, res) {
 }
 export async function getTours(req, res) {
   try {
-    const { cityId, moodId, durationId } = req.query;
-    const query = {};
+    const {
+      cityId,
+      moodId,
+      durationId,
+      search,
+      sort = "newest",
+      page = 1,
+      limit = 10,
+      minPrice,
+      maxPrice,
+      featured,
+      trending,
+      isActive,
+    } = req.query;
+    const query = {
+      isActive: true,
+    };
+
     if (cityId) {
       query.cityId = cityId;
     }
     if (moodId) {
       query.moodId = moodId;
     }
+
     if (durationId) {
       query.durationId = durationId;
     }
-    const tours = await Tour.find(query);
+    if (search?.trim()) {
+      const searchValue = search.trim();
+
+      query.$or = [
+        {
+          name: {
+            $regex: searchValue,
+            $options: "i",
+          },
+        },
+        {
+          cityName: {
+            $regex: searchValue,
+            $options: "i",
+          },
+        },
+        {
+          stateName: {
+            $regex: searchValue,
+            $options: "i",
+          },
+        },
+        {
+          regionName: {
+            $regex: searchValue,
+            $options: "i",
+          },
+        },
+        {
+          moodName: {
+            $regex: searchValue,
+            $options: "i",
+          },
+        },
+        {
+          overview: {
+            $regex: searchValue,
+            $options: "i",
+          },
+        },
+      ];
+    }
+    const sortOptions = {
+      newest: {
+        createdAt: -1,
+      },
+
+      oldest: {
+        createdAt: 1,
+      },
+
+      priceAsc: {
+        price: 1,
+      },
+
+      priceDesc: {
+        price: -1,
+      },
+
+      discount: {
+        discountPrice: -1,
+      },
+    };
+
+    const sortQuery = sortOptions[sort] || {
+      createdAt: -1,
+    };
+
+    const currentPage = Math.max(Number(page) || 1, 1);
+
+    const pageLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+
+    const skip = (currentPage - 1) * pageLimit;
+
+    const totalTours = await Tour.countDocuments(query);
+
+    const totalPages = Math.ceil(totalTours / pageLimit);
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+
+      if (minPrice) {
+        query.price.$gte = Number(minPrice);
+      }
+
+      if (maxPrice) {
+        query.price.$lte = Number(maxPrice);
+      }
+    }
+
+    if (featured !== undefined) {
+      query.featured = featured === "true";
+    }
+
+    if (trending !== undefined) {
+      query.trending = trending === "true";
+    }
+
+    const tours = await Tour.find(query)
+      .populate("regionId", "name slug")
+      .populate("stateId", "name slug")
+      .populate("cityId", "name slug")
+      .populate("moodId", "name slug")
+      .populate("durationId", "name nights days slug")
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(pageLimit)
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Tours fetched successfully",
+
+      count: tours.length,
+
+      pagination: {
+        totalTours,
+        totalPages,
+        currentPage,
+        limit: pageLimit,
+
+        hasNextPage: currentPage < totalPages,
+
+        hasPreviousPage: currentPage > 1,
+      },
+
+      data: tours,
+    });
+  } catch (error) {
+    console.error("Get tours error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+export async function getAdminTours(req, res) {
+  try {
+    const { isActive, page = 1, limit = 10 } = req.query;
+
+    const query = {};
+
+    if (isActive !== undefined) {
+      query.isActive = isActive === "true";
+    }
+
+    const currentPage = Math.max(Number(page) || 1, 1);
+
+    const pageLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+
+    const skip = (currentPage - 1) * pageLimit;
+    const totalTours = await Tour.countDocuments(query);
+    const totalPages = Math.ceil(totalTours / pageLimit);
+    const tours = await Tour.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageLimit)
+      .lean();
     return res.status(200).json({
       success: true,
       count: tours.length,
+      pagination: {
+        totalTours,
+        totalPages,
+        currentPage,
+        limit: pageLimit,
+      },
       data: tours,
     });
   } catch (error) {
@@ -582,3 +765,106 @@ export async function getTours(req, res) {
     });
   }
 }
+
+export async function getTourBySlug(req, res) {
+  try {
+    const { slug } = req.params;
+
+    const tour = await Tour.findOne({
+      slug,
+      isActive: true,
+    })
+      .populate("regionId", "name slug")
+      .populate("stateId", "name slug")
+      .populate("cityId", "name slug")
+      .populate("moodId", "name slug")
+      .populate(
+        "durationId",
+        "name nights days slug"
+      )
+      .lean();
+
+    if (!tour) {
+      return res.status(404).json({
+        success: false,
+        message: "Tour not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Tour fetched successfully",
+      data: tour,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+export async function getSimilarTours(req, res) {
+  try {
+    const { id } = req.params;
+
+    // Find currently opened tour
+    const currentTour = await Tour.findById(id);
+
+    if (!currentTour) {
+      return res.status(404).json({
+        success: false,
+        message: "Tour not found",
+      });
+    }
+
+    // Find similar active tours
+    const similarTours = await Tour.find({
+      _id: {
+        $ne: currentTour._id,
+      },
+
+      isActive: true,
+
+      $or: [
+        {
+          moodId: currentTour.moodId,
+        },
+        {
+          regionId: currentTour.regionId,
+        },
+        {
+          stateId: currentTour.stateId,
+        },
+      ],
+    })
+      .select(
+        "name slug overview price discountPrice thumbnail cityName stateName durationName featured trending"
+      )
+      .sort({
+        featured: -1,
+        trending: -1,
+        createdAt: -1,
+      })
+      .limit(4)
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "Similar tours fetched successfully",
+      count: similarTours.length,
+      data: similarTours,
+    });
+  } catch (error) {
+    console.error(
+      "Get similar tours error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+

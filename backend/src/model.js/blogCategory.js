@@ -1,20 +1,27 @@
 import mongoose from "mongoose";
 
-const moodSchema = new mongoose.Schema(
+const blogCategorySchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Blog category name is required"],
       unique: true,
       trim: true,
+      maxlength: [
+        50,
+        "Category name cannot exceed 50 characters",
+      ],
     },
+
     slug: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
+
     isActive: {
       type: Boolean,
       default: true,
@@ -22,11 +29,12 @@ const moodSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-const Mood = mongoose.model("Mood", moodSchema);
+const BlogCategory = mongoose.model(
+  "BlogCategory",
+  blogCategorySchema,
+);
 
-export default Mood;
-
-
+export default BlogCategory;
