@@ -16,7 +16,6 @@ const blogSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-
     excerpt: {
       type: String,
       required: [true, "Blog excerpt is required"],
@@ -33,13 +32,11 @@ const blogSchema = new mongoose.Schema(
         required: [true, "Cover image URL is required"],
         trim: true,
       },
-
       fileId: {
         type: String,
         required: [true, "Cover image file ID is required"],
         trim: true,
       },
-
       alt: {
         type: String,
         required: [true, "Cover image alt text is required"],
@@ -79,7 +76,6 @@ const blogSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
-
     popular: {
       type: Boolean,
       default: false,
@@ -102,27 +98,6 @@ const blogSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
       index: true,
-    },
-    seo: {
-      metaTitle: {
-        type: String,
-        trim: true,
-        maxlength: [60, "Meta title cannot exceed 60 characters"],
-      },
-
-      metaDescription: {
-        type: String,
-        trim: true,
-        maxlength: [160, "Meta description cannot exceed 160 characters"],
-      },
-
-      keywords: [
-        {
-          type: String,
-          trim: true,
-          lowercase: true,
-        },
-      ],
     },
   },
   {

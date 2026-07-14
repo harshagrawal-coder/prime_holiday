@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { FaCalendarCheck, FaHome, FaPlusCircle, FaSuitcaseRolling, FaTimes, FaUsers, FaEnvelope, FaImages, FaCog, FaLightbulb, FaComment, FaTag, FaGift, FaHistory, FaList, FaChartBar, FaBell, FaChevronDown, FaBlog, FaStar, FaThList, FaTicketAlt, FaClipboardList, FaClock } from "react-icons/fa";
-import { NavLink } from "react-router-dom";
+import { FaCalendarCheck, FaHome, FaPlusCircle, FaSuitcaseRolling, FaTimes, FaUsers, FaEnvelope, FaImages, FaCog, FaLightbulb, FaComment, FaTag, FaGift, FaHistory, FaList, FaChartBar, FaBell, FaChevronDown, FaChevronRight, FaBlog, FaStar, FaThList, FaTicketAlt, FaClipboardList, FaClock, FaGlobeAsia, FaMapMarkerAlt, FaCity, FaSmile, FaDatabase } from "react-icons/fa";
+import { NavLink, useLocation } from "react-router-dom";
 
 const mainItems = [
   { label: "Dashboard", to: "/admin", icon: FaHome, end: true },
@@ -25,8 +25,19 @@ const moreItems = [
   { label: "Settings", to: "/admin/settings", icon: FaCog, end: true },
 ];
 
+const masterDataSubItems = [
+  { label: "Regions", to: "/admin/masterdata/regions", icon: FaGlobeAsia },
+  { label: "States", to: "/admin/masterdata/states", icon: FaMapMarkerAlt },
+  { label: "Cities", to: "/admin/masterdata/cities", icon: FaCity },
+  { label: "Moods", to: "/admin/masterdata/moods", icon: FaSmile },
+  { label: "Durations", to: "/admin/masterdata/durations", icon: FaClock },
+];
+
 const Sidebar = ({ isOpen, onClose }) => {
   const [showMore, setShowMore] = useState(false);
+  const [showMasterData, setShowMasterData] = useState(false);
+  const location = useLocation();
+  const isMasterDataActive = location.pathname.startsWith("/admin/masterdata");
 
   return (
     <>
@@ -80,6 +91,52 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {label}
               </NavLink>
             ))}
+
+            <div className="my-3 border-t border-white/10" />
+
+            <button
+              onClick={() => setShowMasterData(!showMasterData)}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 focus:outline-none ${
+                isMasterDataActive
+                  ? "bg-orange-500 text-white"
+                  : "text-slate-400 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <FaDatabase size={14} />
+                Master Data
+              </div>
+              {isMasterDataActive ? (
+                <FaChevronDown size={11} />
+              ) : (
+                <FaChevronRight size={11} />
+              )}
+            </button>
+
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showMasterData || isMasterDataActive ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="space-y-1 pl-2 pt-1">
+                {masterDataSubItems.map(({ label, to, icon: Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 rounded-xl px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-200 focus:outline-none ${
+                        isActive
+                          ? "bg-orange-500/80 text-white"
+                          : "text-slate-500 hover:bg-white/10 hover:text-slate-300 focus:outline-none"
+                      }`
+                    }
+                  >
+                    <Icon size={13} />
+                    {label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+
+            <div className="my-3 border-t border-white/10" />
 
             <button
               onClick={() => setShowMore(!showMore)}

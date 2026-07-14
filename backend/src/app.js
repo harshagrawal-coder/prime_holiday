@@ -7,6 +7,8 @@ import cityRouter from "./routes/city.routes.js";
 import moodRouter from "./routes/mood.routes.js";
 import durationRouter from "./routes/duration.routes.js";
 import galleryRouter from "./routes/gallery.routes.js";
+import blogCategoryRouter from "./routes/blogCategory.routes.js";
+import blogRouter from "./routes/Blog.routes.js";
 import cookie from "cookie-parser";
 const app = express();
 
@@ -21,7 +23,8 @@ app.use("/api/city", cityRouter);
 app.use("/api/mood", moodRouter);
 app.use("/api/duration", durationRouter);
 app.use("/api/gallery",galleryRouter)
-
+app.use("/api/blogCategory",blogCategoryRouter)
+app.use("/api/blog",blogRouter)
 import multer from "multer";
 
 app.use((err, req, res, next) => {

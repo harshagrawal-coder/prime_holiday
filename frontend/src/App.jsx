@@ -34,6 +34,14 @@ const AdminActivityPage = lazy(() => import("./admin/pages/ActivityLogs"));
 const AdminAnalyticsPage = lazy(() => import("./admin/pages/Analytics"));
 const AdminNotificationsPage = lazy(() => import("./admin/pages/Notifications"));
 
+// Master Data
+const AdminMasterDataPage = lazy(() => import("./admin/pages/MasterData"));
+const AdminRegionsPage = lazy(() => import("./admin/pages/Regions"));
+const AdminStatesPage = lazy(() => import("./admin/pages/States"));
+const AdminCitiesPage = lazy(() => import("./admin/pages/Cities"));
+const AdminMoodsPage = lazy(() => import("./admin/pages/Moods"));
+const AdminDurationsPage = lazy(() => import("./admin/pages/Durations"));
+
 // User Dashboard
 const UserLayout = lazy(() => import("./user/layout/UserLayout"));
 const DashboardHome = lazy(() => import("./user/pages/DashboardHome"));
@@ -95,6 +103,14 @@ const AdminApp = () => (
       <Route path="analytics" element={<AdminAnalyticsPage />} />
       <Route path="notifications" element={<AdminNotificationsPage />} />
       <Route path="settings" element={<AdminSettingsPage />} />
+
+      {/* Master Data */}
+      <Route path="masterdata" element={<AdminMasterDataPage />} />
+      <Route path="masterdata/regions" element={<AdminRegionsPage />} />
+      <Route path="masterdata/states" element={<AdminStatesPage />} />
+      <Route path="masterdata/cities" element={<AdminCitiesPage />} />
+      <Route path="masterdata/moods" element={<AdminMoodsPage />} />
+      <Route path="masterdata/durations" element={<AdminDurationsPage />} />
     </Route>
     <Route path="*" element={<Navigate to="/admin" replace />} />
   </Routes>
