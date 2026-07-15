@@ -1,34 +1,46 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const ADMIN_STORAGE_KEY = "prime-holiday-admin-auth";
+import { API_URI } from "../../config/config";
 
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
-    setError("");
+    setError("value should be fill");
   };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
+ const handleSubmit = async (e) => {
+    e.preventDefault();
 
     if (!formData.email.trim() || !formData.password.trim()) {
       setError("Email and password are required.");
       return;
     }
-
-    if (formData.email === "admin@primeholiday.com" && formData.password === "admin123") {
-      const user = { email: "admin@primeholiday.com", name: "Admin", role: "admin" };
-      localStorage.setItem("adminToken", "local-admin-token");
-      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(user));
+    const { email, password } = formData;
+    try {
+      const response = await fetch(`${API_URI}/api/auth/login`, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message || "Registration failed.");
+        return;
+      }
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("USER_STORAGE_KEY", JSON.stringify(data.userData));
       navigate("/admin", { replace: true });
-    } else {
-      setError("Invalid credentials. Use admin@primeholiday.com / admin123");
+    } catch (error) {
+      console.log(error);
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -36,10 +48,15 @@ const Login = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-4 py-12">
       <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white/95 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
         <div className="mb-8 text-center">
-          <p className="text-[11px] font-black uppercase tracking-[0.32em] text-orange-500">Admin Access</p>
-          <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">Sign in to Dashboard</h1>
+          <p className="text-[11px] font-black uppercase tracking-[0.32em] text-orange-500">
+            Admin Access
+          </p>
+          <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">
+            Sign in to Dashboard
+          </h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-500">
-            Manage tours, bookings, and content from the Prime Holiday admin panel.
+            Manage tours, bookings, and content from the Prime Holiday admin
+            panel.
           </p>
         </div>
 
@@ -73,7 +90,10 @@ const Login = () => {
         </form>
 
         <div className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
-          Demo login: <span className="font-semibold text-slate-900">admin@primeholiday.com / admin123</span>
+          Demo login:{" "}
+          <span className="font-semibold text-slate-900">
+            admin@primeholiday.com / admin123
+          </span>
         </div>
       </div>
     </div>

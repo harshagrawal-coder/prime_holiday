@@ -46,7 +46,6 @@ export async function register(req, res) {
     });
   }
 }
-
 export async function login(req, res) {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -86,8 +85,8 @@ export async function login(req, res) {
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      data: userData,
-      token: token,
+      userData,
+      token,
     });
   } catch (error) {
     return res.status(500).json({

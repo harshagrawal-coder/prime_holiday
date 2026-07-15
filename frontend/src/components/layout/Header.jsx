@@ -21,9 +21,10 @@ const Header = () => {
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen]);
-
   return (
     <header className="absolute left-0 top-0 z-[1000] w-full">
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
@@ -40,7 +41,9 @@ const Header = () => {
                 key={link.name}
                 to={link.path}
                 className={`font-primary text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:text-orange-500 xl:text-xs ${
-                  location.pathname === link.path ? "text-orange-500" : "text-white dark:text-slate-200"
+                  location.pathname === link.path
+                    ? "text-orange-500"
+                    : "text-white dark:text-slate-200"
                 }`}
               >
                 {link.name}
@@ -48,7 +51,7 @@ const Header = () => {
             ))}
 
             <Link
-              to="/admin/login"
+              to="/login"
               className={`inline-flex items-center rounded-full border px-5 py-2.5 font-primary text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500 hover:bg-orange-500 hover:text-white xl:text-xs ${
                 isAccountActive
                   ? "border-orange-500 bg-orange-500 text-white shadow-lg shadow-orange-500/30"
@@ -88,7 +91,9 @@ const Header = () => {
             to={link.path}
             onClick={() => setIsOpen(false)}
             className={`font-primary border-b border-gray-50 py-3 text-base font-bold uppercase tracking-[0.2em] transition-all ${
-              location.pathname === link.path ? "translate-x-2 text-orange-500" : "text-black"
+              location.pathname === link.path
+                ? "translate-x-2 text-orange-500"
+                : "text-black"
             }`}
           >
             {link.name}
@@ -96,7 +101,7 @@ const Header = () => {
         ))}
 
         <Link
-          to="/admin/login"
+          to="/login"
           onClick={() => setIsOpen(false)}
           className={`mt-4 inline-flex items-center justify-center rounded-full px-5 py-3 font-primary text-sm font-bold uppercase tracking-[0.18em] transition-all duration-300 ${
             isAccountActive

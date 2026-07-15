@@ -51,6 +51,10 @@ const Profile = lazy(() => import("./user/pages/Profile"));
 
 const ReservePage = lazy(() => import("./pages/ReservePage"));
 
+// User Auth (standalone, no layout)
+const UserLoginPage = lazy(() => import("./user/pages/Login"));
+const UserRegisterPage = lazy(() => import("./user/pages/Register"));
+
 const PublicApp = () => (
   <MainLayout>
     <Routes>
@@ -59,8 +63,6 @@ const PublicApp = () => (
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/blog/:slug" element={<BlogDetailsPage />} />
       <Route path="/contact" element={<ContactPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
       <Route path="/tour" element={<TourPage />} />
       <Route path="/tours" element={<TourPage />} />
       <Route path="/tour/:id" element={<TourDetailsPage />} />
@@ -121,6 +123,8 @@ const App = () => (
     <Routes>
       <Route path="/admin/*" element={<AdminApp />} />
       <Route path="/dashboard/*" element={<UserApp />} />
+      <Route path="/login" element={<UserLoginPage />} />
+      <Route path="/register" element={<UserRegisterPage />} />
       <Route path="/*" element={<PublicApp />} />
     </Routes>
   </Suspense>

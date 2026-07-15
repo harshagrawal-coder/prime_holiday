@@ -10,11 +10,16 @@ import galleryRouter from "./routes/gallery.routes.js";
 import blogCategoryRouter from "./routes/blogCategory.routes.js";
 import blogRouter from "./routes/Blog.routes.js";
 import cookie from "cookie-parser";
+import cors from "cors"
 const app = express();
-
+app.use(cors({
+  origin:"http://localhost:5173",
+  credentials: true,
+}))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookie());
+
 app.use("/api/auth", authRouter);
 app.use("/api/region", regionRouter);
 app.use("/api/tours", tourRouter);
@@ -26,6 +31,7 @@ app.use("/api/gallery",galleryRouter)
 app.use("/api/blogCategory",blogCategoryRouter)
 app.use("/api/blog",blogRouter)
 import multer from "multer";
+import { get } from "mongoose";
 
 app.use((err, req, res, next) => {
   console.log("======================");
