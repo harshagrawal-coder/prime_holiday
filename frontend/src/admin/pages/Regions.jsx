@@ -14,15 +14,24 @@ const Regions = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: "" });
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [loading, setLoading] = useState(false);
+  const [error, seterror] = useState("");
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    seterror("");
+    if (!formData.name.trim()) {
+      console.log("Region name is required");
+      return;
+    }
     try {
       const token = localStorage.getItem("token");
       // console.log("Token from localStorage:", token);
       const method = editingId ? "PUT" : "POST";
       const url = editingId
-        ? `${API_URI}/api/region/${editingId}`
-        : `${API_URI}/api/region`;
+        ? `${API_URI}/region/${editingId}`
+        : `${API_URI}/region`;
       const response = await fetch(url, {
         method,
         headers: {
@@ -35,9 +44,12 @@ const Regions = () => {
       });
 
       const data = await response.json();
-      console.log("Backend response:", data);
+      // console.log("Backend response:", data);
       if (!response.ok) {
-        throw new Error(data.message || "Failed to create region");
+        throw new Error(
+          data.message ||
+            (editingId ? "failed to update Region" : "Failed to create region"),
+        );
       }
       if (editingId) {
         setItems((prev) =>
@@ -48,13 +60,19 @@ const Regions = () => {
       }
       closeModal();
     } catch (error) {
-      console.log(error.message);
+      seterror(error.message);
+    } finally {
+      setLoading(false);
     }
   };
-  const fetchRegion = async () => {
+  const fetchRegion = async (isActive) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URI}/api/region`, {
+      let url = `${API_URI}/region`;
+      if (isActive != undefined) {
+        url = `${url}?isActive=${isActive}`;
+      }
+      const response = await fetch(url, {
         method: "get",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -83,26 +101,48 @@ const Regions = () => {
     }
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URI}/api/region/${regionId}`, {
+      const response = await fetch(`${API_URI}/region/${regionId}`, {
         method: "delete",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete region");
-      }
+
       setItems((prev) => prev.filter((item) => item._id !== regionId));
     } catch (error) {
-      console.log(error.message)
+      console.log(error.message);
     }
   };
 
-  const toggleStatus = (id, current) => {
-    persist(
-      items.map((i) => (i._id === id ? { ...i, isActive: !current } : i)),
-    );
+  const toggleStatus = async (id, current) => {
+    try {
+      const newStatus = !current;
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URI}/region/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          isActive: newStatus,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "failed to update region status");
+      }
+      if (activeFilter === "all") {
+        fetchRegion();
+      } else if (activeFilter === "active") {
+        fetchRegion(true);
+      } else {
+        fetchRegion(false);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   const openModal = (item = null) => {
@@ -119,11 +159,12 @@ const Regions = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
+    setFormData({ name: "" });
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="w-full min-w-0 p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Regions</h1>
           <p className="text-sm text-slate-500">
@@ -132,26 +173,70 @@ const Regions = () => {
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600"
+          className="flex items-center justify-center gap-2 self-start rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600 sm:self-auto"
         >
-          <FaPlus size={12} /> Add Region
+          <FaPlus size={14} />
+          Add Region
+        </button>
+      </div>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <button
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            activeFilter === "all"
+              ? "bg-orange-500 text-white"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+          onClick={() => {
+            setActiveFilter("all");
+            fetchRegion();
+          }}
+        >
+          All
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveFilter("active");
+            fetchRegion(true);
+          }}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            activeFilter === "active"
+              ? "bg-orange-500 text-white"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Active
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveFilter("inactive");
+            fetchRegion(false);
+          }}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            activeFilter === "inactive"
+              ? "bg-orange-500 text-white"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Inactive
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <table className="w-full">
+      <div className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table className="w-full min-w-[700px] table-fixed">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
+              <th className=" w-[32%] px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
                 Name
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
+              <th className=" w-[28%] px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
                 Slug
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
+              <th className=" w-[18%] px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
                 Status
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">
+              <th className="w-[22%] px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">
                 Actions
               </th>
             </tr>
@@ -191,28 +276,57 @@ const Regions = () => {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => openModal(item)}
-                        className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-orange-500"
-                      >
-                        <FaEdit size={14} />
-                      </button>
-                      <button
-                        onClick={() => toggleStatus(item._id, item.isActive)}
-                        className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-green-500"
-                      >
-                        {item.isActive ? (
-                          <FaToggleOn size={18} />
-                        ) : (
-                          <FaToggleOff size={18} />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-red-500"
-                      >
-                        <FaTrash size={14} />
-                      </button>
+                      <div className="group relative">
+                        <button
+                          onClick={() => openModal(item)}
+                          aria-label="Edit region"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-orange-50 hover:text-orange-500"
+                        >
+                          <FaEdit size={16} />
+                        </button>
+
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                          Edit region
+                        </span>
+                      </div>
+                      <div className="group relative">
+                        <button
+                          onClick={() => toggleStatus(item._id, item.isActive)}
+                          aria-label={
+                            item.isActive
+                              ? "Deactivate region"
+                              : "Activate region"
+                          }
+                          className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${
+                            item.isActive
+                              ? "text-green-500 hover:bg-green-50 hover:text-green-600"
+                              : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                          }`}
+                        >
+                          {item.isActive ? (
+                            <FaToggleOn size={22} />
+                          ) : (
+                            <FaToggleOff size={22} />
+                          )}
+                        </button>
+
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                          {item.isActive ? "Set inactive" : "Set active"}
+                        </span>
+                      </div>
+                      <div className="group relative">
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          aria-label="Delete region"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+                        >
+                          <FaTrash size={16} />
+                        </button>
+
+                        <span className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                          Delete region
+                        </span>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -251,6 +365,11 @@ const Regions = () => {
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
                   placeholder="North India"
                 />
+                {error && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                    {error}
+                  </div>
+                )}
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -262,9 +381,10 @@ const Regions = () => {
                 </button>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
                 >
-                  {editingId ? "Update" : "Add"}
+                  {loading ? "Please wait..." : editingId ? "Update" : "Add"}
                 </button>
               </div>
             </form>

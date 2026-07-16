@@ -34,7 +34,11 @@ export async function regionCreate(req, res) {
 }
 export async function getAllRegion(req, res) {
   try {
-    const regions = await Region.find().sort({ name: 1 });
+    const query = {};
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === "true";
+    }
+    const regions = await Region.find(query).sort({ name: 1 });
     return res.status(200).json({
       success: true,
       message: "All regions fetched successfully",
@@ -74,7 +78,7 @@ export async function updateRegion(req, res) {
   try {
     const { name } = req.body;
     const region = await Region.findById(req.params.id);
-   
+
     if (!region) {
       return res.status(404).json({
         success: false,
@@ -128,6 +132,38 @@ export async function deleteRegion(req, res) {
     return res.status(200).json({
       success: true,
       message: "Region deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+export async function updateRegionStatus(req, res) {
+  try {
+    const { isActive } = req.body;
+    const regionId = req.params.id;
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+    const region = await Region.findById(regionId);
+    if (!region) {
+      return res.status(404).json({
+        success: false,
+        message: "Region not found",
+      });
+    }
+    region.isActive = isActive;
+    await region.save();
+    return res.status(200).json({
+      success: true,
+      message: "Region status updated successfully",
+      region,
     });
   } catch (error) {
     return res.status(500).json({

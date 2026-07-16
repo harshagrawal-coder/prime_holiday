@@ -5,6 +5,7 @@ import {
   getCityById,
   updateCity,
   deleteCity,
+  updateCityStatus,
 } from "../controller/city.controller.js";
 import { authenticate, isAdmin } from "../middleware/auth.middleware.js";
 import { cityValidator } from "../validators/region.valdators.js";
@@ -13,6 +14,7 @@ cityRouter.post("/", authenticate, isAdmin, cityValidator, createCity);
 cityRouter.get("/", getAllCity);
 cityRouter.get("/:id", getCityById);
 cityRouter.put("/:id", authenticate, isAdmin, cityValidator, updateCity);
+cityRouter.patch("/:id/status", authenticate, isAdmin, updateCityStatus);
 cityRouter.delete("/:id", authenticate, isAdmin, deleteCity);
 
 export default cityRouter;

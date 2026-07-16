@@ -22,7 +22,7 @@ const Login = () => {
     }
     const { email, password } = formData;
     try {
-      const response = await fetch(`${API_URI}/api/auth/login`, {
+      const response = await fetch(`${API_URI}/auth/login`, {
         method: "post",
         headers: {
           "Content-Type": "application/json",

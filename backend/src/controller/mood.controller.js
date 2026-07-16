@@ -23,7 +23,7 @@ export async function createMood(req, res) {
     return res.status(201).json({
       success: true,
       message: "mood created successfully",
-      data: mood,
+      mood,
     });
   } catch (error) {
     return res.status(500).json({
@@ -35,12 +35,17 @@ export async function createMood(req, res) {
 
 export async function getAllMood(req, res) {
   try {
-    const mood = await Mood.find().sort({ name: 1 });
+    const query = {};
+
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === "true";
+    }
+    const mood = await Mood.find(query).sort({ name: 1 });
 
     return res.status(200).json({
       success: true,
       message: "All Mood fetched successfully",
-      data: mood,
+      mood,
     });
   } catch (error) {
     return res.status(500).json({
@@ -115,7 +120,7 @@ export async function updateMood(req, res) {
     return res.status(200).json({
       success: true,
       message: "Mood updated successfully",
-      data: mood,
+      mood,
     });
   } catch (error) {
     return res.status(500).json({
@@ -138,6 +143,37 @@ export async function deleteMood(req, res) {
     return res.status(200).json({
       success: true,
       message: "Mood deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+export async function updateMoodStatus(req, res) {
+  try {
+    const { isActive } = req.body;
+    const moodId = req.params.id;
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+    const mood = await Mood.findById(moodId);
+    if (!mood) {
+      return res.status(404).json({
+        success: false,
+        message: "mood not found",
+      });
+    }
+    mood.isActive = isActive;
+    await mood.save();
+    return res.status(200).json({
+      success: true,
+      message: "mood status updated successfully",
+      mood,
     });
   } catch (error) {
     return res.status(500).json({

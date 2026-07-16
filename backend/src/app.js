@@ -10,26 +10,32 @@ import galleryRouter from "./routes/gallery.routes.js";
 import blogCategoryRouter from "./routes/blogCategory.routes.js";
 import blogRouter from "./routes/Blog.routes.js";
 import cookie from "cookie-parser";
-import cors from "cors"
+import cors from "cors";
 const app = express();
-app.use(cors({
-  origin:"http://localhost:5173",
-  credentials: true,
-}))
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookie());
 
 app.use("/api/auth", authRouter);
+// app.use("/website", authRouter);
 app.use("/api/region", regionRouter);
 app.use("/api/tours", tourRouter);
 app.use("/api/state", stateRouter);
 app.use("/api/city", cityRouter);
 app.use("/api/mood", moodRouter);
 app.use("/api/duration", durationRouter);
-app.use("/api/gallery",galleryRouter)
-app.use("/api/blogCategory",blogCategoryRouter)
-app.use("/api/blog",blogRouter)
+app.use("/api/gallery", galleryRouter);
+app.use("/api/blogCategory", blogCategoryRouter);
+app.use("/api/blog", blogRouter);
+
 import multer from "multer";
 import { get } from "mongoose";
 

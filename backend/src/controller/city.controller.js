@@ -11,9 +11,7 @@ export async function createCity(req, res) {
       strict: true,
       trim: true,
     });
-
     const isStateExist = await State.findById(stateId);
-
     if (!isStateExist) {
       return res.status(404).json({
         success: false,
@@ -41,7 +39,7 @@ export async function createCity(req, res) {
     return res.status(201).json({
       success: true,
       message: "City created successfully",
-      data: populatedCity,
+      populatedCity,
     });
   } catch (error) {
     return res.status(500).json({
@@ -52,17 +50,22 @@ export async function createCity(req, res) {
 }
 export async function getAllCity(req, res) {
   try {
-    const cities = await City.find().populate({
-      path: "stateId",
-      populate: {
-        path: "regionId",
-      },
-    });
-
+    const query = {};
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === "true";
+    }
+    const cities = await City.find(query)
+      .populate({
+        path: "stateId",
+        populate: {
+          path: "regionId",
+        },
+      })
+      .sort({ name: 1 });
     return res.status(200).json({
       success: true,
       message: "Cities fetched successfully",
-      data: cities,
+      cities,
     });
   } catch (error) {
     return res.status(500).json({
@@ -79,14 +82,12 @@ export async function getCityById(req, res) {
         path: "regionId",
       },
     });
-
     if (!city) {
       return res.status(404).json({
         success: false,
         message: "City not found",
       });
     }
-
     return res.status(200).json({
       success: true,
       message: "City fetched successfully",
@@ -135,13 +136,17 @@ export async function updateCity(req, res) {
     city.name = name;
     city.slug = slug;
     city.stateId = stateId;
-
     await city.save();
-
+    const populatedCity = await City.findById(city._id).populate({
+      path: "stateId",
+      populate: {
+        path: "regionId",
+      },
+    });
     return res.status(200).json({
       success: true,
       message: "City updated successfully",
-      data: city,
+      populatedCity,
     });
   } catch (error) {
     return res.status(500).json({
@@ -163,6 +168,43 @@ export async function deleteCity(req, res) {
     return res.status(200).json({
       success: true,
       message: "City deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+export async function updateCityStatus(req, res) {
+  try {
+    const { isActive } = req.body;
+    const cityId = req.params.id;
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+    const city = await City.findById(cityId);
+    if (!city) {
+      return res.status(404).json({
+        success: false,
+        message: "city not found",
+      });
+    }
+    city.isActive = isActive;
+    await city.save();
+    const populatedCity = await City.findById(cityId).populate({
+      path: "stateId",
+      populate: {
+        path: "regionId",
+      },
+    });
+    return res.status(200).json({
+      success: true,
+      message: "City updated successfully",
+      populatedCity,
     });
   } catch (error) {
     return res.status(500).json({

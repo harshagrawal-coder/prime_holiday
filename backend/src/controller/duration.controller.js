@@ -31,7 +31,7 @@ export async function createDuration(req, res) {
     return res.status(201).json({
       success: true,
       message: "Duration created successfully",
-      data: duration,
+      duration,
     });
   } catch (error) {
     return res.status(500).json({
@@ -42,14 +42,18 @@ export async function createDuration(req, res) {
 }
 export async function getAllDuration(req, res) {
   try {
-    const durations = await Duration.find().sort({
+    const query = {};
+    if (req.query.isActive != undefined) {
+      query.isActive = req.query.isActive === "true";
+    }
+    const durations = await Duration.find(query).sort({
       days: 1,
     });
 
     return res.status(200).json({
       success: true,
       message: "Durations fetched successfully",
-      data: durations,
+      durations,
     });
   } catch (error) {
     return res.status(500).json({
@@ -72,7 +76,7 @@ export async function getDurationById(req, res) {
     return res.status(200).json({
       success: true,
       message: "Duration fetched successfully",
-      data: duration,
+      duration,
     });
   } catch (error) {
     return res.status(500).json({
@@ -116,17 +120,11 @@ export async function updateDuration(req, res) {
     duration.nights = nights;
     duration.days = days;
     duration.slug = slug;
-
-    if (typeof isActive === "boolean") {
-      duration.isActive = isActive;
-    }
-
     await duration.save();
-
     return res.status(200).json({
       success: true,
       message: "Duration updated successfully",
-      data: duration,
+      duration,
     });
   } catch (error) {
     return res.status(500).json({
@@ -149,6 +147,37 @@ export async function deleteDuration(req, res) {
     return res.status(200).json({
       success: true,
       message: "Duration deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+export async function updateDurationStatus(req, res) {
+  try {
+    const { isActive } = req.body;
+    const durationId = req.params.id;
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+    const duration = await Duration.findById(durationId);
+    if (!duration) {
+      return res.status(404).json({
+        success: false,
+        message: "duration not found",
+      });
+    }
+    duration.isActive = isActive;
+    await duration.save();
+    return res.status(200).json({
+      success: true,
+      message: "duration status updated successfully",
+      duration,
     });
   } catch (error) {
     return res.status(500).json({

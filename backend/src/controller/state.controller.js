@@ -30,11 +30,11 @@ export async function createState(req, res) {
       regionId,
     });
 
-    const populatedState = await State.findById(state._id).populate("regionId");
+    const populateState = await State.findById(state._id).populate("regionId");
     return res.status(201).json({
       success: true,
       message: "state created successfully",
-      data: populatedState,
+      populateState,
     });
   } catch (error) {
     return res.status(500).json({
@@ -45,12 +45,18 @@ export async function createState(req, res) {
 }
 export async function getAllState(req, res) {
   try {
-    const states = await State.find().populate("regionId").sort({ name: 1 });
+    const query = {};
+    if (req.query.isActive != undefined) {
+      query.isActive = req.query.isActive === "true";
+    }
 
+    const states = await State.find(query)
+      .populate("regionId")
+      .sort({ name: 1 });
     return res.status(200).json({
       success: true,
       message: "States fetched successfully",
-      data: states,
+      states,
     });
   } catch (error) {
     return res.status(500).json({
@@ -128,11 +134,11 @@ export async function updateState(req, res) {
     state.regionId = regionId;
 
     await state.save();
-
+    const populateState = await State.findById(state._id).populate("regionId");
     return res.status(200).json({
       success: true,
       message: "State updated successfully",
-      data: state,
+      populateState,
     });
   } catch (error) {
     return res.status(500).json({
@@ -156,6 +162,38 @@ export async function deleteState(req, res) {
     return res.status(200).json({
       success: true,
       message: "State deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+export async function updateStateStatus(req, res) {
+  try {
+    const { isActive } = req.body;
+    const { id } = req.params;
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+    const state = await State.findById(id);
+    if (!state) {
+      return res.status(404).json({
+        success: false,
+        message: "state not found",
+      });
+    }
+    state.isActive = isActive;
+    await state.save();
+    const populateState = await State.findById(state._id).populate("regionId");
+    return res.status(200).json({
+      success: true,
+      message: "state status updated successfully",
+      populateState,
     });
   } catch (error) {
     return res.status(500).json({

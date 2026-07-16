@@ -36,7 +36,6 @@ export async function authenticate(req, res, next) {
       });
     }
 
-    req.token = token;
     req.user = user;
 
     next();
@@ -55,6 +54,5 @@ export function isAdmin(req, res, next) {
       message: "Access denied. Admin only.",
     });
   }
-
   next();
 }
